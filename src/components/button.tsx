@@ -19,9 +19,13 @@ const Button: React.FC<ButtonProps> = ({ solid, children, action, preventDefault
         }
     }
 
+    let colour = solid ?
+        'border-gray-300 bg-orange-500 text-gray-100 hover:bg-orange-600'
+        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50';
+
     return <button
         onClick={onClick}
-        className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500"
+        className={`inline-flex gap-2 items-center justify-center rounded-md border shadow-sm px-4 py-2 text-sm font-medium focus:outline-none ${colour}`}
     >
         {children}
     </button>

@@ -8,7 +8,6 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import Head from 'next/head';
 import Instructor from './_instructor';
 import Student from './_student';
-import styles from '@/styles/Home.module.css';
 
 type Page = 'Home' | 'Instructor' | 'Student';
 
@@ -21,7 +20,7 @@ const Home: NextPage<HomeProps> = ({ setPage }) => {
   // about our website, and some login buttons.  these will not be included in the
   // header
   return (
-    <div className={styles.container}>
+    <>
 
       <Head>
         <title>spatial skills test</title>
@@ -29,26 +28,26 @@ const Home: NextPage<HomeProps> = ({ setPage }) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
+      <main className="">
 
-        <p className={styles.description}>
+        <p className="dark:text-white">
           a website for testing your spatial skills
         </p>
 
-        <div className={styles.grid}>
-          <a onClick={() => setPage('Instructor')} className={styles.card}>
+        <div className="">
+          <a onClick={() => setPage('Instructor')} className="">
             <h2>instructors &rarr;</h2>
             <p>log in here</p>
           </a>
 
-          <a onClick={() => setPage('Student')} className={styles.card}>
+          <a onClick={() => setPage('Student')} className="">
             <h2>students &rarr;</h2>
             <p>enter your access code</p>
           </a>
         </div>
       </main>
 
-      <footer className={styles.footer}>
+      <footer className="">
         <a
           href=""
           target="_blank"
@@ -57,7 +56,7 @@ const Home: NextPage<HomeProps> = ({ setPage }) => {
           CS399 Team 34 | Project 14
         </a>
       </footer>
-    </div>
+    </>
   )
 }
 
@@ -72,7 +71,7 @@ const PageSelect: NextPage = () => {
   const [page, setPage] = useState<Page>('Home');
 
   return (
-    <div className={styles.container}>
+    <div className="">
       {page === 'Home' && <Home setPage={setPage} />}
       {page === 'Instructor' && <Instructor />}
       {page === 'Student' && <Student />}

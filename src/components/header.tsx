@@ -1,6 +1,26 @@
-import React, { Fragment } from 'react';
+import React, { forwardRef, Fragment, HTMLProps } from 'react';
 import { Menu, Popover, Transition } from '@headlessui/react'
 import styles from '@/styles/Home.module.css';
+import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowAltCircleRight } from '@fortawesome/free-regular-svg-icons';
+import { signOut } from 'next-auth/react';
+
+const MenuLink = forwardRef<HTMLAnchorElement, HTMLProps<HTMLAnchorElement>>(function MenuLink(props, ref) {
+    let { href, children, ...rest } = props;
+
+    if (href === undefined) {
+        throw new Error("MenuLink has invalid href 'undefined'");
+    }
+
+    return (
+        <Link href={href}>
+            <a ref={ref} {...rest}>
+                {children}
+            </a>
+        </Link>
+    );
+});
 
 /* this is our dropdown box, which allows users to manage their account */
 const AccountControls: React.FC = () => {
@@ -13,7 +33,7 @@ const AccountControls: React.FC = () => {
         <Menu as="div" className="relative inline-block text-left">
             <div>
                 <Menu.Button className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
-                    login
+                    Zac Cleveland
                     <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
@@ -27,25 +47,22 @@ const AccountControls: React.FC = () => {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
             >
-                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <Menu.Items className="origin-top-left left-0 sm:left-auto sm:origin-top-right sm:right-0 absolute mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="py-1">
                         <Menu.Item>
                             {({ active }) => (
-                                <a
-                                    href="#"
-                                    className={buttonClassName(active)}
-                                >
-                                    as a student
-                                </a>
+                                <MenuLink href="/settings" className={buttonClassName(active)}>
+                                    account settings
+                                </MenuLink>
                             )}
                         </Menu.Item>
                         <Menu.Item>
                             {({ active }) => (
                                 <a
-                                    href="#"
+                                    onClick={() => { signOut({ callbackUrl: '/' }) }}
                                     className={buttonClassName(active)}
                                 >
-                                    as an instructor
+                                    logout
                                 </a>
                             )}
                         </Menu.Item>
@@ -57,21 +74,26 @@ const AccountControls: React.FC = () => {
 };
 
 const HeaderMenu: React.FC = () => {
-    // TODO: logged in (student) => tests (home), history
-    // TODO: logged in (instructor) => classes (home), tests
-    // TODO: logged out => empty header
+    // TODO: logged in (student) => tests (home), history, account controls
+    // TODO: logged in (instructor) => classes (home), tests, account controls
+    // TODO: logged out => just account controls
     return (
         <>
             <div className="text-sm sm:flex-grow">
-                <a href="#responsive-header" className="block mt-4 sm:inline-block sm:mt-0 text-orange-200 hover:text-white mr-4">
-                    upcoming
-                </a>
-                <a href="#responsive-header" className="block mt-4 sm:inline-block sm:mt-0 text-orange-200 hover:text-white mr-4">
-                    history
-                </a>
+                <Link href="/">
+                    <a className="block mt-4 sm:inline-block sm:mt-0 text-orange-200 hover:text-white mr-4">
+                        upcoming
+                    </a>
+                </Link>
+                {/* when instructor logged in, change this to /quiz/list */}
+                <Link href="/quiz/history">
+                    <a className="block mt-4 sm:inline-block sm:mt-0 text-orange-200 hover:text-white mr-4">
+                        history
+                    </a>
+                </Link>
             </div>
             <div>
-                <div className="block mt-4 sm:inline-block sm:mt-0 text-orange-200 hover:text-white mr-4">
+                <div className="mt-4 sm:mt-0">
                     <AccountControls />
                 </div>
             </div>

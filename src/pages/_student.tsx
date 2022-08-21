@@ -7,7 +7,6 @@
  **/
 import { NextPage } from 'next';
 import Head from 'next/head';
-import styles from '../styles/Home.module.css';
 
 interface Quiz {
     id: number,
@@ -28,7 +27,7 @@ const SampleQuizzes: Quiz[] = [
 
 const Student: NextPage = () => {
     return (
-        <div className={styles.container}>
+        <>
 
             <Head>
                 <title>student homepage</title>
@@ -36,7 +35,7 @@ const Student: NextPage = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
-            <main className={styles.main}>
+            <main className="">
                 <h1 className="">
                     student home
                 </h1>
@@ -46,14 +45,14 @@ const Student: NextPage = () => {
                             return (
                                 <div key={`quiz-${quiz.id}`}>
                                     <h1>{quiz.name}</h1>
-                                    <p>{quiz.start_date.toDateString()}</p>
+                                    <p>Due {quiz.end_date.toDateString()}</p>
                                 </div>
                             )
                         })
                     }
                 </div>
             </main>
-        </div>
+        </>
     )
 };
 

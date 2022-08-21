@@ -5,7 +5,6 @@
 import { NextPage } from 'next';
 import { Dispatch, SetStateAction, useRef, useState } from 'react';
 import Head from 'next/head';
-import styles from '@/styles/Home.module.css';
 import { Dialog } from '@headlessui/react';
 import Button from '@/components/button';
 
@@ -140,7 +139,7 @@ const Instructor: NextPage = () => {
     };
 
     return (
-        <div className={styles.container}>
+        <>
 
             <Head>
                 <title>instructor homepage</title>
@@ -149,7 +148,7 @@ const Instructor: NextPage = () => {
             </Head>
 
             <main>
-                <h1 className={styles.title}>
+                <h1 className="">
                     your classes
                 </h1>
 
@@ -170,7 +169,7 @@ const Instructor: NextPage = () => {
                     createClass={createClass}
                 />
             </main>
-        </div >
+        </>
     )
 }
 
