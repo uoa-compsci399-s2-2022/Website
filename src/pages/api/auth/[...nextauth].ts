@@ -12,6 +12,8 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import AppleProvider from 'next-auth/providers/apple';
 import GitHubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import prisma from '@/lib/prisma';
 
 const resolveString = (str: string | undefined): string => {
     return str ? str : "undefined";
@@ -20,6 +22,7 @@ const resolveString = (str: string | undefined): string => {
 export const authOptions = NextAuth({
     providers: [
         CredentialsProvider({
+            id: 'passcode',
             name: 'Login with Passcode',
             credentials: {
                 passcode: { label: "Passcode", type: "password" }
@@ -32,34 +35,6 @@ export const authOptions = NextAuth({
                     }
                 }
                 return null;
-            }
-        }),
-        CredentialsProvider({
-            name: 'Login with Email and Password',
-            credentials: {
-                email: { label: "Email", type: "email" },
-                passcode: { label: "Passcode", type: "password" }
-            },
-            async authorize(credentials, req) {
-                // check GraphQL database for our passcode
-                if (credentials?.passcode === "abcd") {
-                    return {
-                        not_sure: true
-                    }
-                }
-                return null;
-                const res = await fetch("/your/endpoint", {
-                    method: 'POST',
-                    body: JSON.stringify(credentials),
-                    headers: { "Content-Type": "application/json" }
-                })
-                const user = await res.json()
-
-                if (res.ok && user) {
-                    return user
-                }
-                // Return null if user data could not be retrieved
-                return null
             }
         }),
         /* https://next-auth.js.org/providers/apple */
@@ -78,6 +53,7 @@ export const authOptions = NextAuth({
             clientSecret: resolveString(process.env.GOOGLE_CLIENT_SECRET)
         })
     ],
+    adapter: PrismaAdapter(prisma),
     pages: {
         "signIn": "/auth/login",
     }
