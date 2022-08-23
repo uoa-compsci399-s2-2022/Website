@@ -3,7 +3,8 @@
  * a student's entered passcode.  This incldues anonymous group login, where
  * one password can represent many different students.
  */
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import prisma from '@/lib/prisma';
 
 type Data = {
     error?: string,
