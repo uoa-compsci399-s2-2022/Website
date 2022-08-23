@@ -27,6 +27,8 @@ interface LoginProps {
 
 const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
     // TODO: render any errors we get from failed login attempts
+    // https://next-auth.js.org/configuration/pages#error-codes
+
     const defaultGroupString = localStorage.getItem('login-last-state');
     let defaultGroup = parseInt(defaultGroupString ? defaultGroupString : "");
     if (defaultGroup === NaN) defaultGroup = 1;
@@ -52,7 +54,7 @@ const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
             </Tab.List>
             <Tab.Panels>
                 <Tab.Panel><StudentLogin csrfToken={csrfToken} /></Tab.Panel>
-                <Tab.Panel><InstructorLogin providers={providers} csrfToken={csrfToken} /></Tab.Panel>
+                <Tab.Panel><InstructorLogin providers={providers} /></Tab.Panel>
             </Tab.Panels>
 
         </div>

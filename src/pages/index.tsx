@@ -3,6 +3,7 @@
  * will show a landing page.  If a student is logged in, they should see '_student.tsx'
  * If an instructor is logged in, they should see '_instructor.tsx'.
  **/
+import { isStudent } from '@/lib/util';
 import type { NextPage } from 'next';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
@@ -14,9 +15,6 @@ const Index: NextPage = () => {
   const { data: session, status } = useSession()
   const loading = status === "loading";
 
-  // NOTE: this is temporary.  once auth is implemented,
-  // which page is shown here depends on what type of user
-  // is logged in
   return (
     <>
       <Head>
@@ -30,7 +28,11 @@ const Index: NextPage = () => {
           <p>loading... {/* TODO: draw some spinner element or something */}</p>
         ) : (
           session ? (
-            <Instructor session={session} />
+            isStudent(session) ? (
+              <Student session={session} />
+            ) : (
+              <Instructor session={session} />
+            )
           ) : (
             <Landing />
           )

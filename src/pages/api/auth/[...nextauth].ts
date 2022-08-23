@@ -7,7 +7,7 @@
  *   Students
  *     -> Credentials (login with passcode)
  **/
-import NextAuth from 'next-auth';
+import NextAuth, { Session } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import AppleProvider from 'next-auth/providers/apple';
 import GitHubProvider from 'next-auth/providers/github';
@@ -28,13 +28,24 @@ export const authOptions = NextAuth({
                 passcode: { label: "Passcode", type: "password" }
             },
             async authorize(credentials, req) {
-                // check GraphQL database for our passcode
-                if (credentials?.passcode === "abcd") {
-                    return {
-                        not_sure: true
-                    }
+                if (credentials === undefined) {
+                    return null;
                 }
-                return null;
+
+                const res: any = await fetch(process.env.NEXTAUTH_URL + '/api/token', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ passcode: credentials.passcode }),
+                });
+                const user = await res.json();
+
+                if (!res.ok || 'error' in Object.keys(user)) {
+                    return null;
+                }
+
+                return { ...user, student: true };
             }
         }),
         /* https://next-auth.js.org/providers/apple */
@@ -53,6 +64,23 @@ export const authOptions = NextAuth({
             clientSecret: resolveString(process.env.GOOGLE_CLIENT_SECRET)
         })
     ],
+    session: {
+        strategy: 'jwt'
+    },
+    callbacks: {
+        async jwt({ token, user }) {
+            const response = { ...token };
+            if (user && 'student' in user)
+                response.student = true;
+            return response;
+        },
+        async session({ session, user, token }) {
+            const response: any = { ...session };
+            if (response.user && token && 'student' in token)
+                response.user.student = true;
+            return response;
+        }
+    },
     adapter: PrismaAdapter(prisma),
     pages: {
         "signIn": "/auth/login",

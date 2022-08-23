@@ -4,6 +4,7 @@ import { Menu, Popover, Transition } from '@headlessui/react';
 import { Session } from 'next-auth';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { isStudent } from '@/lib/util';
 
 /*
  * A simple forwardRef to allow Next.js Links to be valid Menu items
@@ -90,17 +91,26 @@ interface HeaderMenuProps {
     session: Session | null
 }
 
+const STUDENT_LINKS = {
+    'upcoming': '/',
+    'history': '/quiz/history'
+};
+const INSTRUCTOR_LINKS = {
+    'classes': '/',
+    'quizzes': '/quiz/list'
+};
+const VISITOR_LINKS = {
+    'home': '/',
+}
+
 const HeaderMenu: React.FC<HeaderMenuProps> = ({ session }) => {
     const router = useRouter();
     const isActive: (pathname: string) => boolean = (pathname) =>
         router.pathname === pathname;
 
-    const links: Record<string, string> = session ? {
-        'upcoming': '/',
-        'history': '/quiz/history'
-    } : {
-        'home': '/'
-    };
+    const links: Record<string, string> = session ? (
+        isStudent(session) ? STUDENT_LINKS : INSTRUCTOR_LINKS
+    ) : VISITOR_LINKS;
 
     return (
         <>
@@ -108,11 +118,11 @@ const HeaderMenu: React.FC<HeaderMenuProps> = ({ session }) => {
                 {
                     Object.keys(links).map((name) => {
                         const active = isActive(links[name]);
-                        const extraClass = active ? " text-white" : "";
+                        const colour = active ? "text-white" : "text-orange-200";
                         return (
                             <Link href={links[name]} key={`link-${name}`}>
                                 <a
-                                    className={"block mt-4 sm:inline-block sm:mt-0 text-orange-200 hover:text-white mr-4" + extraClass}
+                                    className={`block mt-4 sm:inline-block sm:mt-0 hover:text-white mr-4 ${colour}`}
                                     data-active={active}
                                 >
                                     {name}

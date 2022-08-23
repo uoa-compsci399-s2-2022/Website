@@ -16,9 +16,8 @@ const ProviderIcons: Record<string, IconDefinition> = {
 
 interface InstructorLoginProps {
     providers?: ProviderRecord,
-    csrfToken?: string,
 }
-const InstructorLogin: React.FC<InstructorLoginProps> = ({ providers, csrfToken }) => {
+const InstructorLogin: React.FC<InstructorLoginProps> = ({ providers }) => {
 
     return <div className="">
         <div className="w-full py-8 flex flex-col gap-4">
