@@ -2,10 +2,11 @@
  * The 'Instructor' page should show instructors their classes, and allow
  * them to create new classes
  **/
-import React, { Dispatch, SetStateAction, useRef, useState } from 'react';
+import React, { Dispatch, SetStateAction, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import Button from '@/components/button';
 import { Session } from 'next-auth';
+import ImportStudents, { ImportedStudent } from '@/components/import';
 
 interface Class {
     name: string,
@@ -58,8 +59,8 @@ const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen, createCl
         });
     };
 
-    const importStudents = () => {
-
+    const importedStudents = (students: ImportedStudent[]) => {
+        console.log(students);
     };
 
 
@@ -67,37 +68,39 @@ const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen, createCl
         <Dialog
             open={isOpen}
             onClose={() => setIsOpen(false)}
-            className="relative z-50"
+            className="relative z-50 w-full"
         >
             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
             <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="mx-auto max-w-sm rounded bg-white p-4">
+                <Dialog.Panel className="w-full sm:max-w-xl mx-auto rounded bg-white p-4">
 
-                    <Dialog.Title>Create class</Dialog.Title>
-                    <Dialog.Description>
-                        This will permanently deactivate your account
-                    </Dialog.Description>
+                    <Dialog.Title className="text-xl font-bold">Create class</Dialog.Title>
 
-                    <form onSubmit={() => createClass(classCreated)} className="flex flex-col">
+                    <form onSubmit={() => createClass(classCreated)} className="flex flex-col gap-2">
                         <label>
-                            Class name:
-                            <input
-                                name="className"
-                                type="text"
-                                value={classCreated.name}
-                                onChange={(e) => classNameChanged(e.target.value)} />
+                            Class name
                         </label>
-                        <p>Generated id: {classCreated.id}</p>
-                        <br />
-                        <label>
-                            Students
-                            <button onClick={() => importStudents()}>Import</button>
-                            <textarea
-                                name="className"
-                                value={classCreated.students.join('\n')}
-                                onChange={(e) => classStudentsChanged(e.target.value)} />
-                            (Count: {classCreated.students.length})
-                        </label>
+                        <input
+                            className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                            name="className"
+                            type="text"
+                            value={classCreated.name}
+                            onChange={(e) => classNameChanged(e.target.value)} />
+                        <p className="text-xs">Generated ID: {classCreated.id}</p>
+                        <div
+                            className="flex place-content-between items-center"
+                        >
+                            <label>
+                                Students
+                            </label>
+                            <ImportStudents onImport={importedStudents} />
+                        </div>
+                        <textarea
+                            className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                            name="className"
+                            value={classCreated.students.join('\n')}
+                            onChange={(e) => classStudentsChanged(e.target.value)} />
+                        <p className="text-xs mb-2">Count: {classCreated.students.length}</p>
                     </form>
 
                     <div className="flex gap-2">

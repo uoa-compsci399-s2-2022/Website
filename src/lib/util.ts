@@ -1,7 +1,5 @@
 import { Session } from "next-auth"
 
 export const isStudent = (session?: Session): boolean => {
-    return session !== undefined
-        && session.user !== undefined
-        && 'student' in session.user;
+    return (session && session.user && 'student' in session.user) ?? false;
 }
