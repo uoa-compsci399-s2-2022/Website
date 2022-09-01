@@ -7,7 +7,7 @@
  *   Students
  *     -> Credentials (login with passcode)
  **/
-import NextAuth, { Session } from 'next-auth';
+import NextAuth, { NextAuthOptions, Session } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GitHubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
@@ -18,7 +18,7 @@ const resolveString = (str: string | undefined): string => {
     return str ? str : "undefined";
 }
 
-export const authOptions = NextAuth({
+export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
             id: 'passcode',
@@ -64,14 +64,22 @@ export const authOptions = NextAuth({
     callbacks: {
         async jwt({ token, user }) {
             const response = { ...token };
-            if (user && 'student' in user)
-                response.student = true;
+            if (user) {
+                response.uid = user.id;
+                if ('student' in user) {
+                    response.student = true;
+                }
+            }
             return response;
         },
         async session({ session, user, token }) {
             const response: any = { ...session };
-            if (response.user && token && 'student' in token)
+            if (response.user && token) {
+                response.user.uid = token.uid;
+            }
+            if (response.user && token && 'student' in token) {
                 response.user.student = true;
+            }
             return response;
         }
     },
@@ -79,6 +87,6 @@ export const authOptions = NextAuth({
     pages: {
         "signIn": "/auth/login",
     }
-});
+};
 
-export default authOptions;
+export default NextAuth(authOptions);

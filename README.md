@@ -16,10 +16,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
   - [TailwindCSS](https://tailwindcss.com/)
   - [HeadlessUI](https://headlessui.com/)
   - [fontawesome](https://fontawesome.com/)
-  - [csv-parse](https://www.npmjs.com/package/csv-parse)
+  - [csv-parse](https://www.npmjs.com/package/csv-parse/)
+  - [formik](https://formik.org/)
 - Hosting
   - [Vercel](https://vercel.com/)
-  - [Heroku Postgres](https://www.heroku.com/postgres)
+  - [Heroku Postgres](https://www.heroku.com/postgres/)
 
 ## Getting Started
 

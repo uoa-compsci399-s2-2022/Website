@@ -4,14 +4,47 @@
  * If an instructor is logged in, they should see '_instructor.tsx'.
  **/
 import { isStudent } from '@/lib/util';
-import type { NextPage } from 'next';
+import { Class, Student } from '@prisma/client';
+import type { GetServerSideProps, NextPage } from 'next';
+import { unstable_getServerSession } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
+import { authOptions } from './api/auth/[...nextauth]';
 import Instructor from './_instructor';
 import Landing from './_landing';
-import Student from './_student';
+import StudentPage from './_student';
 
-const Index: NextPage = () => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await unstable_getServerSession(context.req, context.res, authOptions);
+
+  if (session?.user && !isStudent(session)) {
+    const classes = await prisma.class.findMany({
+      where: {
+        user: {
+          email: session.user.email
+        },
+      },
+      include: {
+        students: true,
+      }
+    });
+
+    return {
+      props: { classes },
+    }
+  } else {
+    console.log('no session');
+    return { props: {} }
+  }
+};
+
+interface IndexProps {
+  classes?: (Class & {
+    students: Student[]
+  })[]
+}
+
+const Index: NextPage<IndexProps> = ({ classes }) => {
   const { data: session, status } = useSession()
   const loading = status === "loading";
 
@@ -29,9 +62,9 @@ const Index: NextPage = () => {
         ) : (
           session ? (
             isStudent(session) ? (
-              <Student session={session} />
+              <StudentPage session={session} />
             ) : (
-              <Instructor session={session} />
+              <Instructor session={session} classes={classes} />
             )
           ) : (
             <Landing />

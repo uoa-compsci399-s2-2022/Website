@@ -1,5 +1,19 @@
 # database
 
+we use prisma and postgresql to store data
+
+## updating the schema
+
+edit `prisma/schema.prisma`
+
+then run the following commands
+```
+$ npx prisma db push
+$ npx prisma generate
+```
+
+## data types
+
 data types we need to store
 
 ### student

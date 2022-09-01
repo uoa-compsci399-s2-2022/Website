@@ -58,9 +58,10 @@ model VerificationToken {
 model Class {
   id       String    @id @default(cuid())
   textid   String
-  user     User      @relation(fields: [userId], references: [id])
-  userId   String
+  name     String
+  users    User[]
   students Student[]
+  groups   Group[]
 }
 
 model Student {
@@ -74,15 +75,11 @@ model Student {
 }
 
 model Group {
-  id       String    @id @default(cuid())
-  name     String
-  passcode String    @unique
-  students Student[]
-}
-
-model AnonymousGroup {
-  id          String @id @default(cuid())
-  name        String
-  passcode    String @unique
-  submissions Int
+  id        String    @id @default(cuid())
+  name      String
+  passcode  String    @unique
+  anonymous Boolean
+  students  Student[]
+  class     Class     @relation(fields: [classId], references: [id])
+  classId   String
 }
