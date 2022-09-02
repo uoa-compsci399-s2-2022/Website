@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 import { Session } from 'next-auth';
 import { Class, Student } from '@prisma/client';
 import { ClassCreator } from '@/components/classcreator';
+import { CardContainer } from '@/components/card';
+import ClassCard from '@/components/class_card';
 
 interface InstructorProps {
     session: Session,
@@ -29,15 +31,15 @@ const Instructor: React.FC<InstructorProps> = ({ classes, session }) => {
                 <h1 className="">
                     your classes
                 </h1>
-
-                {
-                    classes.map((data) => {
-                        return (<h1 key={data.id}>
-                            {data.name} ({data.students.length} students)
-                            <button>go</button>
-                        </h1>);
-                    })
-                }
+                <CardContainer>
+                    {
+                        classes.map((data) => {
+                            return (
+                                <ClassCard _class={data} ></ClassCard>
+                                );
+                        })
+                    }
+                </CardContainer>
 
                 <button onClick={() => setClassCreatorOpen(true)}>new class</button>
 

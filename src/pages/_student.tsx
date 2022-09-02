@@ -8,7 +8,7 @@
 import { Session } from 'next-auth';
 import React from 'react';
 
-interface Quiz {
+export interface Quiz {
     id: number,
     name: string,
     start_date: Date,

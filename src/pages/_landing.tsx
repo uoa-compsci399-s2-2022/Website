@@ -9,25 +9,27 @@ const Landing: React.FC = () => {
     // about our website
     return (
         <>
-            <main className="">
-                <p className="dark:text-white">
-                    a website for testing your spatial skills
-                </p>
+            <div className=''>
+                <main className="">
+                    <p className="dark:text-white">
+                        a website for testing your spatial skills
+                    </p>
 
-                <div className="">
+                    <div className="">
 
-                </div>
-            </main>
+                    </div>
+                </main>
 
-            <footer className="">
-                <a
-                    href=""
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    CS399 Team 34 | Project 14
-                </a>
-            </footer>
+                <footer className="">
+                    <a
+                        href=""
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        CS399 Team 34 | Project 14
+                    </a>
+                </footer>
+            </div>
         </>
     )
 };

@@ -36,14 +36,14 @@ interface AccountControlsProps {
 
 const AccountControls: React.FC<AccountControlsProps> = ({ session }) => {
     const buttonClassName = (active: boolean): string => {
-        return (active ? 'bg-gray-100 text-gray-900' : 'text-gray-700') +
+        return (active ? 'bg-accent/[0.2] text-gray-900' : 'text-gray-700') +
             ' block px-4 py-2 text-sm';
     }
 
     return (
         <Menu as="div" className="relative inline-block text-left">
             <div>
-                <Menu.Button className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                <Menu.Button className="inline-flex justify-center w-full rounded-md border border-gray-900 shadow-sm px-4 py-2 bg-accent text-sm font-medium text-text-colour hover:bg-accent/[0.85] focus:outline-none">
                     {session.user?.name}
                     <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -92,15 +92,15 @@ interface HeaderMenuProps {
 }
 
 const STUDENT_LINKS = {
-    'upcoming': '/',
-    'history': '/quiz/history'
+    'Upcoming': '/',
+    'History': '/quiz/history'
 };
 const INSTRUCTOR_LINKS = {
-    'classes': '/',
-    'quizzes': '/quiz/list'
+    'Classes': '/',
+    'Quizzes': '/quiz/list'
 };
 const VISITOR_LINKS = {
-    'home': '/',
+    'Home': '/',
 }
 
 const HeaderMenu: React.FC<HeaderMenuProps> = ({ session }) => {
@@ -118,7 +118,7 @@ const HeaderMenu: React.FC<HeaderMenuProps> = ({ session }) => {
                 {
                     Object.keys(links).map((name) => {
                         const active = isActive(links[name]);
-                        const colour = active ? "text-white" : "text-orange-200";
+                        const colour = active ? "text-white" : "text-nav-text";
                         return (
                             <Link href={links[name]} key={`link-${name}`}>
                                 <a
@@ -138,7 +138,7 @@ const HeaderMenu: React.FC<HeaderMenuProps> = ({ session }) => {
                         session ?
                             <AccountControls session={session} /> :
                             <Link href="/auth/login">
-                                <a className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                                <a className="inline-flex justify-center w-full rounded-md border border-gray-900 shadow-sm px-4 py-2 bg-accent text-sm font-medium text-text-colour hover:bg-accent/[0.55] focus:outline-none">
                                     login
                                 </a>
                             </Link>
@@ -159,9 +159,9 @@ const Header: React.FC = () => {
 
     return (
         <Popover className="relative">
-            <nav className="flex items-center justify-between flex-wrap bg-orange-600 p-6">
+            <nav className="flex items-center justify-between flex-wrap bg-primary p-6">
                 <div className="flex items-center flex-shrink-0 text-white mr-6">
-                    <span className="font-semibold text-xl tracking-tight">spatial skills testing</span>
+                    <span className="font-semibold text-xl tracking-tight text-text-colour">Spatial Skills Testing</span>
                 </div>
                 <div className="block sm:hidden">
                     <Popover.Button className="flex items-center px-3 py-2 border rounded text-orange-200 border-orange-400 hover:text-white hover:border-white">

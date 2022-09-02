@@ -4,7 +4,9 @@
 import { NextPage } from 'next'
 
 const QuizList: NextPage = () => {
-    return <p>List of all quizzes</p>
+    return (
+        <p>List of all quizzes</p>
+    )
 }
 
 export default QuizList
