@@ -8,7 +8,7 @@ import { StudentProps, studentToProps } from "./student";
 import { authOptions } from './auth/[...nextauth]';
 import prisma from '@/lib/prisma';
 import { isStudent } from '@/lib/util';
-import { Class, Prisma, Student } from '@prisma/client';
+import { Class, Student } from '@prisma/client';
 
 
 export interface ClassProps {
@@ -54,8 +54,10 @@ export default async function handler(
             if (!id && !textid) {
                 const prismaClasses = await prisma.class.findMany({
                     where: {
-                        user: {
-                            email: session.user.email
+                        users: {
+                            some: {
+                                email: session.user.email
+                            }
                         }
                     },
                     include: {
@@ -72,8 +74,10 @@ export default async function handler(
                 where: {
                     id: id,
                     textid: textid,
-                    user: {
-                        email: session.user.email
+                    users: {
+                        some: {
+                            email: session.user.email
+                        }
                     }
                 },
                 include: {
@@ -118,7 +122,9 @@ export default async function handler(
                         }
                     });
                 } else if (prismaStudent.name !== student.name
-                    || prismaStudent.email !== student.email) {
+                    || prismaStudent.passcode !== student.passcode
+                    || (prismaStudent.email ?? undefined) !== student.email) {
+                    console.log({ student, prismaStudent });
                     res.status(400).json({
                         error: `Student ${student.name} (passcode: ${student.passcode}) conflicts with existing student.`
                     });
@@ -130,8 +136,10 @@ export default async function handler(
             const prismaClass = await prisma.class.findFirst({
                 where: {
                     textid: textid,
-                    user: {
-                        email: session.user.email
+                    users: {
+                        some: {
+                            email: session.user.email
+                        }
                     }
                 },
                 include: {
@@ -148,7 +156,7 @@ export default async function handler(
 
             const result = await prisma.class.create({
                 data: {
-                    user: {
+                    users: {
                         connect: {
                             email: session.user.email ?? undefined
                         }
@@ -224,8 +232,10 @@ export default async function handler(
                 where: {
                     id,
                     textid,
-                    user: {
-                        email: session.user.email,
+                    users: {
+                        some: {
+                            email: session.user.email,
+                        }
                     }
                 }
             });
@@ -239,11 +249,12 @@ export default async function handler(
                 res.status(200).json({
                     message: `Deleted class ${prismaClass.textid}`
                 });
+                return;
             } else {
                 res.status(404).json({ error: `Class with id ${id ? id : textid} not found.` });
                 return;
             }
-        }; break;
+        };
     }
 
     res.status(405).json({ error: `Invalid method ${req.method}` });

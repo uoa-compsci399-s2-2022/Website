@@ -3,12 +3,12 @@
  * will show a landing page.  If a student is logged in, they should see '_student.tsx'
  * If an instructor is logged in, they should see '_instructor.tsx'.
  **/
-import { isStudent } from '@/lib/util';
-import { Class, Student } from '@prisma/client';
 import type { GetServerSideProps, NextPage } from 'next';
 import { unstable_getServerSession } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
+import { isStudent } from '@/lib/util';
+import { Class, Student } from '@prisma/client';
 import { authOptions } from './api/auth/[...nextauth]';
 import Instructor from './_instructor';
 import Landing from './_landing';
@@ -20,8 +20,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (session?.user && !isStudent(session)) {
     const classes = await prisma.class.findMany({
       where: {
-        user: {
-          email: session.user.email
+        users: {
+          some: {
+            email: session.user.email,
+          }
         },
       },
       include: {

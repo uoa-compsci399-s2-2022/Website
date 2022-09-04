@@ -11,6 +11,24 @@ interface ButtonProps {
     children?: React.ReactNode;
 }
 
+interface Colours {
+    [key: string]: {
+        enabled: string,
+        disabled: string,
+    }
+}
+
+const colours: Colours = {
+    solid: {
+        enabled: 'border-gray-300 bg-orange-500 text-gray-100 hover:bg-orange-600',
+        disabled: 'border-gray-300 bg-orange-300 text-gray-100',
+    },
+    not_solid: {
+        enabled: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+        disabled: 'border-gray-300 bg-grey-300 text-gray-400',
+    }
+}
+
 const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, preventDefault }) => {
 
     const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -20,9 +38,7 @@ const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, prev
         }
     }
 
-    let colour = solid ?
-        'border-gray-300 bg-orange-500 text-gray-100 hover:bg-orange-600'
-        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50';
+    let colour = colours[solid ? 'solid' : 'not_solid'][disabled ? 'disabled' : 'enabled'];
 
     return <button
         onClick={onClick}
