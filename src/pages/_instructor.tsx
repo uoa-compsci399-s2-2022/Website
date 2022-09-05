@@ -4,7 +4,7 @@
  **/
 import React, { useState } from 'react';
 import { Session } from 'next-auth';
-import { Class, Student } from '@prisma/client';
+import { Class, Student, User } from '@prisma/client';
 import { ClassCreator } from '@/components/class_creator';
 import Card, { CardContainer } from '@/components/card';
 import ClassCard from '@/components/class_card';
@@ -13,7 +13,8 @@ import Button from '@/components/button';
 interface InstructorProps {
     session: Session,
     classes?: (Class & {
-        students: Student[]
+        students: Student[],
+        users: User[],
     })[]
 }
 
@@ -29,7 +30,7 @@ const Instructor: React.FC<InstructorProps> = ({ classes, session }) => {
     return (
         <>
             <main>
-                <h1 className="">
+                <h1 className="text-white text-3xl p-6">
                     your classes
                 </h1>
                 <CardContainer>
@@ -41,7 +42,7 @@ const Instructor: React.FC<InstructorProps> = ({ classes, session }) => {
                         })
                     }
                     <Card onClick={() => setClassCreatorOpen(true)}>
-                        <h1 className="mt-4 text-xl font-bold text-text-colour">create new class</h1>
+                        <h1 className="mt-4 text-xl font-bold text-text-colour w-full text-center">create new class</h1>
                     </Card>
                 </CardContainer>
 

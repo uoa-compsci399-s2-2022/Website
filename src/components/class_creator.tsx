@@ -3,7 +3,7 @@ import { Field, FieldArray, Form, Formik, useField } from "formik";
 import { useRouter } from "next/router";
 import React, { Dispatch, SetStateAction, useEffect } from "react";
 import Button from "./button";
-import ImportStudents, { ImportedStudent } from "./import";
+import ImportStudents, { ImportedStudent } from "./student_import";
 import { LoadingSpinner } from './loading';
 
 const ClassNameField: React.FC = () => {
@@ -67,14 +67,15 @@ const ClassNameField: React.FC = () => {
                 name="name"
                 type="text"
             />
-            <p className="text-xs">
+            <p className="text-xs flex">
                 Generated ID: <Field
                     name="textid"
                     type="text"
+                    className="flex-grow pl-2"
                     validate={validateTextId}
                     disabled
                 />
-                <span className="text-red-500">{meta.error}</span>
+                {meta.touched && <span className="text-red-500">{meta.error}</span>}
             </p>
         </div >
     )
@@ -82,7 +83,7 @@ const ClassNameField: React.FC = () => {
 
 interface ClassStudentFieldProps {
     index: number,
-    remove: (index: number) => void,
+    remove: () => void,
 }
 
 const ClassStudentField: React.FC<ClassStudentFieldProps> = ({ index, remove }) => {
@@ -137,7 +138,7 @@ const ClassStudentField: React.FC<ClassStudentFieldProps> = ({ index, remove }) 
             <td className="border border-1">
                 <span
                     title="Remove"
-                    onClick={() => remove(index)}
+                    onClick={() => remove()}
                     className="flex items-center justify-center text-center cursor-pointer px-2"
                 >
                     -
@@ -161,7 +162,8 @@ export const ClassStudentsField: React.FC<ClassStudentsFieldProp> = ({ validateF
     } else if (meta.error) {
         const errors = meta.error as any as Record<string, string>[];
         const index = errors.findIndex(e => e);
-        if (index) {
+        console.log(index);
+        if (index >= 0) {
             let key = Object.keys(errors[index])[0];
             error = `Student ${parseInt(index as any as string) + 1}: ${errors[index][key]}`
         }
@@ -197,7 +199,7 @@ export const ClassStudentsField: React.FC<ClassStudentsFieldProp> = ({ validateF
                                         <ClassStudentField
                                             key={index}
                                             index={index}
-                                            remove={(index: number) => {
+                                            remove={() => {
                                                 helpers.remove(index);
                                                 setTimeout(() => {
                                                     validateForm();
@@ -212,7 +214,10 @@ export const ClassStudentsField: React.FC<ClassStudentsFieldProp> = ({ validateF
                     </div>
                 )}
             />
-            <p className="text-xs mb-2">Count: {meta.value.length} {' '} <span className="text-red-500">{error}</span></p>
+            <p className="text-xs mb-2 flex">
+                <span className="flex-grow">Count: {meta.value.length}</span>
+                <span className="text-red-500">{error}</span>
+            </p>
         </div>
     )
 }
@@ -240,7 +245,7 @@ export const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen })
             <div className="fixed inset-0 flex items-center justify-center p-4">
                 <Dialog.Panel className="w-full sm:max-w-xl mx-auto rounded bg-white p-4">
 
-                    <Dialog.Title className="text-xl font-bold">Create class</Dialog.Title>
+                    <Dialog.Title className="text-xl font-bold">Class Creator</Dialog.Title>
 
                     <Formik
                         initialValues={{ name: '', textid: '', students: [{ name: '', passcode: '' }] } as FormValues}

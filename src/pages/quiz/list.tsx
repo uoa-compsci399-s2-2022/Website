@@ -5,7 +5,11 @@ import { NextPage } from 'next'
 
 const QuizList: NextPage = () => {
     return (
-        <p>List of all quizzes</p>
+        <main>
+            <h1 className="text-white text-3xl p-6">
+                your quizzes
+            </h1>
+        </main>
     )
 }
 

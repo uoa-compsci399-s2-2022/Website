@@ -8,7 +8,7 @@ const Landing: React.FC = () => {
     // TODO: this should be our landing page.  here, display some cool info
     // about our website
     return (
-        <>
+        <main>
             <div className=''>
                 <main className="">
                     <p className="dark:text-white">
@@ -30,7 +30,7 @@ const Landing: React.FC = () => {
                     </a>
                 </footer>
             </div>
-        </>
+        </main>
     )
 };
 

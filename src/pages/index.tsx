@@ -8,7 +8,7 @@ import { unstable_getServerSession } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
 import { isStudent } from '@/lib/util';
-import { Class, Student } from '@prisma/client';
+import { Class, Student, User } from '@prisma/client';
 import { authOptions } from './api/auth/[...nextauth]';
 import Instructor from './_instructor';
 import Landing from './_landing';
@@ -22,12 +22,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       where: {
         users: {
           some: {
-            email: session.user.email,
+            id: session.user.uid,
           }
         },
       },
       include: {
         students: true,
+        users: true,
       }
     });
 
@@ -42,7 +43,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 interface IndexProps {
   classes?: (Class & {
-    students: Student[]
+    students: Student[],
+    users: User[],
   })[]
 }
 

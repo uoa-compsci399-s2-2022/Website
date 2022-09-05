@@ -16,16 +16,18 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ children, url, onClick }) => {
-    return <OptionalLink url={url}>
-        <a
-            onClick={onClick}
-            className={`left-1 block p-8 border border-border shadow-xl rounded-xl w-md mx-auto bg-primary${(onClick && ' cursor-pointer hover:bg-primary/[0.8]') ?? ''}`}
-        >
-            <div className='left-1 mt-4 text-gray-500 sm:pr-8 '>
-                {children}
-            </div>
-        </a>
-    </OptionalLink>;
+    return (<div>
+        <OptionalLink url={url}>
+            <a
+                onClick={onClick}
+                className={`left-1 block p-8 border border-border shadow-xl rounded-xl w-md mx-auto bg-primary${(onClick && ' cursor-pointer hover:bg-primary/[0.8]') ?? ''}`}
+            >
+                <div className='left-1 my-4 text-gray-500'>
+                    {children}
+                </div>
+            </a>
+        </OptionalLink>
+    </div>);
 }
 
 

@@ -8,14 +8,36 @@ import { StudentProps, studentToProps } from "./student";
 import { authOptions } from './auth/[...nextauth]';
 import prisma from '@/lib/prisma';
 import { isStudent } from '@/lib/util';
-import { Class, Student } from '@prisma/client';
+import { Class, Prisma, Student, User } from '@prisma/client';
 
+interface UserProps {
+    id: string,
+    name: string,
+    email?: string,
+}
 
 export interface ClassProps {
     id: string,
     name: string,
     textid: string,
     students: StudentProps[]
+    users: UserProps[],
+};
+
+export interface ClassUpdate {
+    id?: string,
+    textid?: string,
+    update?: {
+        name?: string,
+    },
+    add?: {
+        uid?: string,
+        students?: StudentProps[],
+    },
+    remove?: {
+        uid?: string,
+        students?: StudentProps[],
+    }
 };
 
 type Data = {
@@ -25,13 +47,45 @@ type Data = {
     classes?: ClassProps[],
 } | any;
 
-export const classToProps = (prismaClass: Class & { students: Student[] }): ClassProps => {
+const userToProps = (user: User): UserProps => {
+    return {
+        id: user.id,
+        name: user.name ?? 'anonymous',
+        email: user.email ?? undefined,
+    }
+}
+
+export const classToProps = (prismaClass: Class & { students: Student[], users: User[] }): ClassProps => {
     return {
         id: prismaClass.id,
         name: prismaClass.name,
         textid: prismaClass.textid,
         students: prismaClass.students.map((prismaStudent) => studentToProps(prismaStudent)),
+        users: prismaClass.users.map((prismaUser) => userToProps(prismaUser)),
     };
+}
+
+const findOrCreateStudent = async (student: StudentProps): Promise<Student> => {
+    let prismaStudent = await prisma.student.findFirst({
+        where: {
+            passcode: student.passcode
+        }
+    });
+    if (prismaStudent === null) {
+        // create a new student
+        prismaStudent = await prisma.student.create({
+            data: {
+                name: student.name,
+                passcode: student.passcode,
+                email: student.email,
+            }
+        });
+    } else if (prismaStudent.name !== student.name
+        || prismaStudent.passcode !== student.passcode
+        || (prismaStudent.email ?? undefined) !== student.email) {
+        throw new Error(`Student ${student.name} (passcode: ${student.passcode}) conflicts with existing student.`);
+    }
+    return prismaStudent;
 }
 
 export default async function handler(
@@ -56,12 +110,13 @@ export default async function handler(
                     where: {
                         users: {
                             some: {
-                                email: session.user.email
+                                id: session.user.uid
                             }
                         }
                     },
                     include: {
                         students: true,
+                        users: true,
                     }
                 });
                 res.status(200).json({
@@ -76,12 +131,13 @@ export default async function handler(
                     textid: textid,
                     users: {
                         some: {
-                            email: session.user.email
+                            id: session.user.uid
                         }
                     }
                 },
                 include: {
                     students: true,
+                    users: true,
                 }
             });
             if (prismaClass) {
@@ -103,48 +159,15 @@ export default async function handler(
                 return;
             }
 
-            const prismaStudents = [];
-
-            for (const student of students) {
-                // create a new student, if they dont exist
-                let prismaStudent = await prisma.student.findFirst({
-                    where: {
-                        passcode: student.passcode
-                    }
-                });
-                if (prismaStudent === null) {
-                    // create a new student
-                    prismaStudent = await prisma.student.create({
-                        data: {
-                            name: student.name,
-                            passcode: student.passcode,
-                            email: student.email,
-                        }
-                    });
-                } else if (prismaStudent.name !== student.name
-                    || prismaStudent.passcode !== student.passcode
-                    || (prismaStudent.email ?? undefined) !== student.email) {
-                    console.log({ student, prismaStudent });
-                    res.status(400).json({
-                        error: `Student ${student.name} (passcode: ${student.passcode}) conflicts with existing student.`
-                    });
-                    return;
-                }
-                prismaStudents.push(prismaStudent);
-            }
-
             const prismaClass = await prisma.class.findFirst({
                 where: {
                     textid: textid,
                     users: {
                         some: {
-                            email: session.user.email
+                            id: session.user.uid
                         }
                     }
                 },
-                include: {
-                    students: true,
-                }
             });
 
             if (prismaClass !== null) {
@@ -154,47 +177,42 @@ export default async function handler(
                 return;
             }
 
-            const result = await prisma.class.create({
-                data: {
-                    users: {
-                        connect: {
-                            email: session.user.email ?? undefined
+            try {
+                const prismaStudents = await Promise.all(students.map(student => findOrCreateStudent(student)));
+
+                const result = await prisma.class.create({
+                    data: {
+                        users: {
+                            connect: {
+                                id: session.user.uid
+                            }
+                        },
+                        name,
+                        textid,
+                        students: {
+                            connect: prismaStudents.map((s) => {
+                                return {
+                                    id: s.id
+                                };
+                            })
                         }
                     },
-                    name,
-                    textid,
-                    students: {
-                        connect: prismaStudents.map((s) => {
-                            return {
-                                passcode: s.passcode
-                            };
-                        })
+                    include: {
+                        students: true,
+                        users: true,
                     }
-                },
-                include: {
-                    students: true,
-                }
-            });
+                });
 
-            res.status(200).json({ class: classToProps(result) });
+                res.status(200).json({ class: classToProps(result) });
+            } catch (error) {
+                res.status(400).json({
+                    error
+                });
+            }
             return;
         };
         case 'PUT': {
-            const { id, textid, update, add, remove } = req.body as {
-                id?: string,
-                textid?: string,
-                update?: {
-                    name?: string,
-                },
-                add?: {
-                    uid?: string,
-                    students?: StudentProps[],
-                },
-                remove?: {
-                    uid?: string,
-                    students?: StudentProps[],
-                }
-            };
+            const { id, textid, update, add, remove } = req.body as ClassUpdate;
 
             if (!id && !textid) {
                 res.status(400).json({
@@ -203,17 +221,90 @@ export default async function handler(
                 return;
             }
 
+            const prismaClass = await prisma.class.findFirst({
+                where: {
+                    users: {
+                        some: {
+                            id: session.user.uid,
+                        }
+                    },
+                    id,
+                    textid,
+                }
+            });
+            if (!prismaClass) {
+                res.status(400).json({
+                    error: `Could not find class ${id ? id : textid}`
+                });
+                return;
+            }
+            const classId = prismaClass.id;
+
+
+            const newData: any = {};
+
             if (update) {
+                if (update.name)
+                    newData.name = update.name;
             }
 
             if (add) {
-
+                if (add.uid) {
+                    newData.users = {
+                        connect: {
+                            id: add.uid,
+                        }
+                    }
+                }
+                if (add.students) {
+                    try {
+                        const prismaStudents = await Promise.all(add.students.map(student => findOrCreateStudent(student)));
+                        newData.students = {
+                            connect: prismaStudents.map(student => { return { id: student.id } })
+                        };
+                    } catch (error) {
+                        res.status(400).json({
+                            error
+                        });
+                        return;
+                    }
+                }
             }
 
             if (remove) {
-
+                if (remove.uid) {
+                    newData.users = {
+                        ...newData.users,
+                        delete: {
+                            id: remove.uid
+                        }
+                    }
+                }
+                if (remove.students) {
+                    newData.students = {
+                        ...newData.users,
+                        deleteMany: remove.students.map(student => {
+                            return { passcode: student.passcode };
+                        })
+                    }
+                }
             }
-            res.status(500).json({ error: "Unimplemented." });
+
+            const updatedClass = await prisma.class.update({
+                where: {
+                    id: classId,
+                },
+                data: {
+                    ...newData,
+                },
+                include: {
+                    users: true,
+                    students: true,
+                }
+            });
+
+
+            res.status(200).json({ class: classToProps(updatedClass) });
             return;
         };
         case 'DELETE': {
@@ -234,7 +325,7 @@ export default async function handler(
                     textid,
                     users: {
                         some: {
-                            email: session.user.email,
+                            id: session.user.uid,
                         }
                     }
                 }

@@ -54,6 +54,8 @@ const ImportStudents: React.FC<ImportProps> = ({ onImport }) => {
 
         parser.on('end', function () {
             onImport(students);
+            if (fileImportRef.current)
+                fileImportRef.current.value = '';
         });
 
         for (let i = 0; i < files.length; i++) {
