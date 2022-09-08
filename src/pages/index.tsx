@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react';
 import Head from 'next/head';
 import { isStudent } from '@/lib/util';
 import { Class, Student, User } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { authOptions } from './api/auth/[...nextauth]';
 import Instructor from './_instructor';
 import Landing from './_landing';

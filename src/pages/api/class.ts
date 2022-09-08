@@ -4,25 +4,10 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { unstable_getServerSession } from 'next-auth';
-import { StudentProps, studentToProps } from "./student";
 import { authOptions } from './auth/[...nextauth]';
-import prisma from '@/lib/prisma';
+import prisma, { classToProps } from '@/lib/prisma';
 import { isStudent } from '@/lib/util';
-import { Class, Prisma, Student, User } from '@prisma/client';
-
-interface UserProps {
-    id: string,
-    name: string,
-    email?: string,
-}
-
-export interface ClassProps {
-    id: string,
-    name: string,
-    textid: string,
-    students: StudentProps[]
-    users: UserProps[],
-};
+import { Student } from '@prisma/client';
 
 export interface ClassUpdate {
     id?: string,
@@ -46,24 +31,6 @@ type Data = {
     class?: ClassProps,
     classes?: ClassProps[],
 } | any;
-
-const userToProps = (user: User): UserProps => {
-    return {
-        id: user.id,
-        name: user.name ?? 'anonymous',
-        email: user.email ?? undefined,
-    }
-}
-
-export const classToProps = (prismaClass: Class & { students: Student[], users: User[] }): ClassProps => {
-    return {
-        id: prismaClass.id,
-        name: prismaClass.name,
-        textid: prismaClass.textid,
-        students: prismaClass.students.map((prismaStudent) => studentToProps(prismaStudent)),
-        users: prismaClass.users.map((prismaUser) => userToProps(prismaUser)),
-    };
-}
 
 const findOrCreateStudent = async (student: StudentProps): Promise<Student> => {
     let prismaStudent = await prisma.student.findFirst({

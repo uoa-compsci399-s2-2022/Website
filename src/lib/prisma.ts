@@ -1,14 +1,31 @@
-import { PrismaClient } from '@prisma/client';
+import { Class, PrismaClient, Student, User } from '@prisma/client';
 
-let prisma: PrismaClient;
-
-if (process.env.NODE_ENV === 'production') {
-    prisma = new PrismaClient();
-} else {
-    if (!global.prisma) {
-        global.prisma = new PrismaClient();
+export const userToProps = (user: User): UserProps => {
+    return {
+        id: user.id,
+        name: user.name ?? 'anonymous',
+        email: user.email ?? undefined,
     }
-    prisma = global.prisma;
-}
+};
+
+export const studentToProps = (student: Student): StudentProps => {
+    return {
+        name: student.name,
+        passcode: student.passcode,
+        email: student.email ?? undefined,
+    };
+};
+
+export const classToProps = (prismaClass: Class & { students: Student[], users: User[] }): ClassProps => {
+    return {
+        id: prismaClass.id,
+        name: prismaClass.name,
+        textid: prismaClass.textid,
+        students: prismaClass.students.map((prismaStudent) => studentToProps(prismaStudent)),
+        users: prismaClass.users.map((prismaUser) => userToProps(prismaUser)),
+    };
+};
+
+const prisma = new PrismaClient();
 
 export default prisma;
