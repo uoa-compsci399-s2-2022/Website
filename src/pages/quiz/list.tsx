@@ -113,7 +113,10 @@ const CategoryComponent: React.FC<{ name: string, category: Category }> = ({ nam
                                             key={`${category.key}.${question.id}`}
                                             className="flex items-center"
                                         >
-                                            <span className="flex-grow">{question.content.name}</span>
+                                            <span className="flex-grow">{
+                                                // @ts-ignore
+                                                question.content.name
+                                            }</span>
                                             <Link href={`/quiz/preview/${question.id}`} passHref>
                                                 <a target="_blank" rel="noopener noreferrer">
                                                     <FontAwesomeIcon

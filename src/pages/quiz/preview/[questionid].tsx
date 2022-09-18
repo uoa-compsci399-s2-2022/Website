@@ -66,7 +66,10 @@ const QuestionPreview: NextPage<IndexProps> = ({ question }) => {
             {question && <>
                 <div className="rounded-lg bg-slate-600 m-4">
                     <h1 className="text-white text-3xl p-6 text-center">
-                        {question.content.name} (preview)
+                        {
+                            // @ts-ignore
+                            question.content.name
+                        } (preview)
                     </h1>
                     {content}
                 </div>

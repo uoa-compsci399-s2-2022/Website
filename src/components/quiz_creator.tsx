@@ -3,7 +3,6 @@ import { Field, FieldArray, Form, Formik, useField } from "formik";
 import { useRouter } from "next/router";
 import React, { Dispatch, SetStateAction, useEffect } from "react";
 import Button from "./button";
-import { ImportedStudent } from "./student_import";
 import { LoadingSpinner } from './loading';
 
 interface ClassCreatorProps {
