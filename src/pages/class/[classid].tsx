@@ -8,10 +8,11 @@ import type { GetServerSideProps, NextPage } from 'next';
 import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { Class, Student, User } from '@prisma/client';
-import ImportStudents, { ImportedStudent } from '@/components/student_import';
+import ImportStudents from '@/components/student_import';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { ClassUpdate } from '../api/class';
+import prisma from '@/lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await unstable_getServerSession(context.req, context.res, authOptions);

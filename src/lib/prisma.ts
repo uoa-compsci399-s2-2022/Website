@@ -1,4 +1,4 @@
-import { Class, PrismaClient, Student, User } from '@prisma/client';
+import { Class, PrismaClient, QuizQuestion, Student, User } from '@prisma/client';
 
 export const userToProps = (user: User): UserProps => {
     return {
@@ -25,6 +25,16 @@ export const classToProps = (prismaClass: Class & { students: Student[], users: 
         users: prismaClass.users.map((prismaUser) => userToProps(prismaUser)),
     };
 };
+
+export const questionToProps = (question: QuizQuestion): QuizQuestionProps => {
+    return {
+        id: question.id,
+        type: question.type,
+        category: question.category,
+        content: question.content,
+        attribution: question.attribution,
+    };
+}
 
 const prisma = new PrismaClient();
 

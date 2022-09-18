@@ -281,7 +281,7 @@ export default async function handler(
             };
             if (!id && !textid) {
                 res.status(400).json({
-                    error: "Please include an 'id' or 'textid' parameter in the request body"
+                    error: "Please include an 'id' or 'textid' parameter in the request parameters"
                 });
                 return;
             }

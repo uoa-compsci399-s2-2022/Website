@@ -1,18 +1,12 @@
 /**
  * An import button for importing a list of students
  **/
+import { importStudentsCSV } from '@/lib/util';
 import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Popover, Transition } from '@headlessui/react';
-import { parse } from 'csv-parse';
 import React, { FormEvent, Fragment, useRef } from 'react';
 import Button from './button';
-
-export type ImportedStudent = {
-    name: string,
-    passcode: string,
-    email?: string,
-}
 
 interface ImportProps {
     onImport: (students: ImportedStudent[]) => void,
@@ -20,53 +14,6 @@ interface ImportProps {
 
 const ImportStudents: React.FC<ImportProps> = ({ onImport }) => {
     const fileImportRef = useRef<HTMLInputElement>(null);
-
-    const importStudents = async () => {
-        const files = fileImportRef.current?.files;
-        if (!files || files.length === 0) return;
-
-        const students: ImportedStudent[] = [];
-        const parser = parse({
-            delimiter: ','
-        })
-
-        parser.on('readable', function () {
-            let record;
-            while ((record = parser.read()) !== null) {
-                if (record.length < 2) {
-                    throw Error('Invalid CSV file, please include a name and passcode for each student');
-                } else if (record.length > 3) {
-                    throw Error('Invalid CSV file, too many values');
-                }
-                const [name, passcode] = record;
-                const student: ImportedStudent = {
-                    name,
-                    passcode,
-                };
-                if (record.length === 3) student.email = record[3];
-                students.push(student);
-            }
-        });
-
-        parser.on('error', function (err) {
-            alert('Failed to parse students CSV, ' + err.message)
-        });
-
-        parser.on('end', function () {
-            onImport(students);
-            if (fileImportRef.current)
-                fileImportRef.current.value = '';
-        });
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files.item(i);
-            if (!file) continue;
-
-            parser.write(await file.text());
-        }
-
-        parser.end();
-    };
 
     return <div className="flex gap-2 items-center">
         <Button action={() => fileImportRef.current?.click()} preventDefault={true}>
@@ -76,7 +23,13 @@ const ImportStudents: React.FC<ImportProps> = ({ onImport }) => {
             ref={fileImportRef}
             type="file"
             id="file"
-            onChange={() => importStudents()}
+            onChange={
+                () => importStudentsCSV(fileImportRef.current?.files, (students) => {
+                    onImport(students);
+                    if (fileImportRef.current)
+                        fileImportRef.current.value = '';
+                })
+            }
             accept=".csv"
             hidden
         />

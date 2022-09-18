@@ -63,7 +63,7 @@ const AccountControls: React.FC<AccountControlsProps> = ({ session }) => {
                         <Menu.Item>
                             {({ active }) => (
                                 <MenuLink href="/settings" className={buttonClassName(active)}>
-                                    account settings
+                                    Account settings
                                 </MenuLink>
                             )}
                         </Menu.Item>
@@ -73,7 +73,7 @@ const AccountControls: React.FC<AccountControlsProps> = ({ session }) => {
                                     onClick={() => { signOut({ callbackUrl: '/' }) }}
                                     className={buttonClassName(active)}
                                 >
-                                    logout
+                                    Logout
                                 </a>
                             )}
                         </Menu.Item>
@@ -139,7 +139,7 @@ const HeaderMenu: React.FC<HeaderMenuProps> = ({ session }) => {
                             <AccountControls session={session} /> :
                             <Link href="/auth/login">
                                 <a className="inline-flex justify-center w-full rounded-md border border-gray-900 shadow-sm px-4 py-2 bg-accent text-sm font-medium text-text-colour hover:bg-accent/[0.55] focus:outline-none">
-                                    login
+                                    Login
                                 </a>
                             </Link>
                     }

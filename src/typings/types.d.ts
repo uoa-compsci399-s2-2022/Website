@@ -43,9 +43,15 @@ interface QuizQuestionLinkProps {
 }
 
 interface QuizQuestionProps {
-    id: string,
+    id?: string,
     type: string,
     category: string,
     content: any,
     attribution: string,
+}
+
+type ImportedStudent = {
+    name: string,
+    passcode: string,
+    email?: string,
 }
