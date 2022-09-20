@@ -7,70 +7,50 @@
  *   Students
  *     -> Credentials (login with passcode)
  **/
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthOptions, Session } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import AppleProvider from 'next-auth/providers/apple';
 import GitHubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import prisma from '@/lib/prisma';
 
 const resolveString = (str: string | undefined): string => {
     return str ? str : "undefined";
 }
 
-export const authOptions = NextAuth({
+export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
+            id: 'passcode',
             name: 'Login with Passcode',
             credentials: {
                 passcode: { label: "Passcode", type: "password" }
             },
             async authorize(credentials, req) {
-                // check GraphQL database for our passcode
-                if (credentials?.passcode === "abcd") {
-                    return {
-                        not_sure: true
-                    }
+                if (credentials === undefined) {
+                    return null;
                 }
-                return null;
-            }
-        }),
-        CredentialsProvider({
-            name: 'Login with Email and Password',
-            credentials: {
-                email: { label: "Email", type: "email" },
-                passcode: { label: "Passcode", type: "password" }
-            },
-            async authorize(credentials, req) {
-                // check GraphQL database for our passcode
-                if (credentials?.passcode === "abcd") {
-                    return {
-                        not_sure: true
-                    }
-                }
-                return null;
-                const res = await fetch("/your/endpoint", {
-                    method: 'POST',
-                    body: JSON.stringify(credentials),
-                    headers: { "Content-Type": "application/json" }
-                })
-                const user = await res.json()
 
-                if (res.ok && user) {
-                    return user
+                const res: any = await fetch(process.env.NEXTAUTH_URL + '/api/token', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ passcode: credentials.passcode }),
+                });
+                const user = await res.json();
+
+                if (!res.ok || 'error' in Object.keys(user)) {
+                    return null;
                 }
-                // Return null if user data could not be retrieved
-                return null
+
+                return { ...user, student: true };
             }
-        }),
-        /* https://next-auth.js.org/providers/apple */
-        AppleProvider({
-            clientId: resolveString(process.env.APPLE_ID),
-            clientSecret: resolveString(process.env.APPLE_SECRET)
         }),
         /* https://next-auth.js.org/providers/github */
         GitHubProvider({
             clientId: resolveString(process.env.GITHUB_ID),
-            clientSecret: resolveString(process.env.GITHUB_SECRET)
+            clientSecret: resolveString(process.env.GITHUB_SECRET),
         }),
         /* https://next-auth.js.org/providers/google */
         GoogleProvider({
@@ -78,9 +58,35 @@ export const authOptions = NextAuth({
             clientSecret: resolveString(process.env.GOOGLE_CLIENT_SECRET)
         })
     ],
+    session: {
+        strategy: 'jwt'
+    },
+    callbacks: {
+        async jwt({ token, user }) {
+            const response = { ...token };
+            if (user) {
+                response.uid = user.id;
+                if ('student' in user) {
+                    response.student = true;
+                }
+            }
+            return response;
+        },
+        async session({ session, user, token }) {
+            const response: any = { ...session };
+            if (response.user && token) {
+                response.user.uid = token.uid;
+            }
+            if (response.user && token && 'student' in token) {
+                response.user.student = true;
+            }
+            return response;
+        }
+    },
+    adapter: PrismaAdapter(prisma),
     pages: {
         "signIn": "/auth/login",
     }
-});
+};
 
-export default authOptions;
+export default NextAuth(authOptions);

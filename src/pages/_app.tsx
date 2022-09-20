@@ -5,8 +5,10 @@ import Header from '@/components/header'
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return <SessionProvider session={session}>
-    <Header />
-    <Component {...pageProps} />
+    <div className='bg-background min-h-screen'>
+      <Header />
+      <Component {...pageProps} />
+    </div>
   </SessionProvider>
 }
 

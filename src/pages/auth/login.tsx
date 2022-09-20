@@ -27,9 +27,10 @@ interface LoginProps {
 
 const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
     // TODO: render any errors we get from failed login attempts
+    // https://next-auth.js.org/configuration/pages#error-codes
+
     const defaultGroupString = localStorage.getItem('login-last-state');
-    let defaultGroup = parseInt(defaultGroupString ? defaultGroupString : "");
-    if (defaultGroup === NaN) defaultGroup = 1;
+    let defaultGroup = parseInt(defaultGroupString ?? "") || 1;
 
     const tabStyle = ({ selected }: { selected: boolean }): string => {
         return 'w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700' +
@@ -40,7 +41,7 @@ const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
     };
 
     return <Tab.Group
-        defaultIndex={defaultGroup !== undefined ? defaultGroup : 1}
+        defaultIndex={defaultGroup ?? 1}
         onChange={(index) => {
             localStorage.setItem('login-last-state', index.toString());
         }}
@@ -52,7 +53,7 @@ const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
             </Tab.List>
             <Tab.Panels>
                 <Tab.Panel><StudentLogin csrfToken={csrfToken} /></Tab.Panel>
-                <Tab.Panel><InstructorLogin providers={providers} csrfToken={csrfToken} /></Tab.Panel>
+                <Tab.Panel><InstructorLogin providers={providers} /></Tab.Panel>
             </Tab.Panels>
 
         </div>

@@ -1,0 +1,32 @@
+import React from 'react';
+
+
+interface LoadingProps {
+    colour?: string,
+    size?: number,
+    lm?: number,
+    rm?: number,
+}
+
+/*
+ * SVG from https://tailwindcss.com/docs/animation#spin
+ */
+export const LoadingSpinner: React.FC<LoadingProps> = ({ colour = 'white', size = 5, lm = 2, rm = 2 }) => {
+    // Convert a number and size into tailwind margin class
+    const margin = (name: string, size: number) => {
+        if (size == 0) {
+            return '';
+        } else {
+            return `${size < 0 ? '-' : ''}${name}-${Math.abs(size)}`;
+        }
+    }
+
+    const margins = margin('lm', lm) + ' ' + margin('rm', rm);
+
+    return (
+        <svg className={`animate-spin ${margins} h-${size} w-${size} text-${colour}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+    )
+}

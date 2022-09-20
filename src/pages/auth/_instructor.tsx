@@ -16,43 +16,11 @@ const ProviderIcons: Record<string, IconDefinition> = {
 
 interface InstructorLoginProps {
     providers?: ProviderRecord,
-    csrfToken?: string,
 }
-const InstructorLogin: React.FC<InstructorLoginProps> = ({ providers, csrfToken }) => {
-
-    console.log(providers);
+const InstructorLogin: React.FC<InstructorLoginProps> = ({ providers }) => {
 
     return <div className="">
         <div className="w-full py-8 flex flex-col gap-4">
-            <form className="w-full flex flex-col gap-4" method="post" action="/api/auth/callback/credentials">
-                <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
-                <label
-                    className=""
-                    htmlFor="email"
-                >
-                    email address:
-
-                    <input
-                        className="outline outline-1 focus:outline-2 rounded w-full p-2"
-                        type="email"
-                        name="email"
-                    />
-                </label>
-                <label
-                    className=""
-                    htmlFor="email"
-                >
-                    password:
-                    <input
-                        className="outline outline-1 focus:outline-2 rounded w-full p-2"
-                        type="password"
-                        name="password"
-                        placeholder=''
-                    />
-                </label>
-                <Button solid={true} action={() => { }}>Login</Button>
-            </form>
-            <h3 className="text-center">or</h3>
             <>
                 {
                     providers && Object.values(providers).filter((provider) => provider.type === 'oauth').map((provider) => {

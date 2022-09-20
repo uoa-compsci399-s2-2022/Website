@@ -19,13 +19,20 @@ a {
   box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* CodeRunner Styles */
+.atto_image_button_text-top.img-fluid,
+.atto_image_button_middle.img-fluid,
+.atto_image_button_text-bottom.img-fluid {
+  display: inline-block;
+  max-width: calc(100% - 1em);
+}
 
-  body {
-    color: white;
-    background: black;
-  }
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+}
+
+.atto_image_button_text-bottom {
+  vertical-align: text-bottom;
+  margin: 0 0.5em;
 }
