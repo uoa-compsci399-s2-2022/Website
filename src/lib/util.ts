@@ -2,6 +2,7 @@ import { Session } from "next-auth"
 import { parse } from 'csv-parse';
 import { XMLParser } from 'fast-xml-parser';
 import { stringify } from 'querystring';
+import { QuizQuestion } from '@prisma/client';
 
 export const isStudent = (session?: Session): boolean => {
     return (session && session.user && 'student' in session.user) ?? false;
@@ -192,6 +193,9 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 };
 
 const importQuestionsJSON = async (file: File, onImport: OnImportQuestionsFunc): Promise<void> => {
+    const text = await file.text();
+    const jsonObject = JSON.parse(text);
+
 
 };
 
@@ -235,3 +239,8 @@ export const moodleFixHtml = (html: string, image: any): string => {
 
     return htmlDoc.body.innerHTML;
 }
+
+export const questionRemoveAnswers = (question: QuizQuestion) => {
+    console.error('questionRemoveAnswers is unimplemented!');
+    return question;
+};

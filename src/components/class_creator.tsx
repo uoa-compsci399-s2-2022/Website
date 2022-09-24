@@ -5,51 +5,54 @@ import React, { Dispatch, SetStateAction, useEffect } from "react";
 import Button from "./button";
 import ImportStudents from "./student_import";
 import { LoadingSpinner } from './loading';
+import { gql, useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { Student } from '@prisma/client';
+
+const CreateClassMutation = gql`
+    mutation($textid: String!, $name: String!, $students: [String!]) {
+        createClass(textid: $textid, name: $name, students: $students) {
+            id
+            name
+        }
+    }
+`;
+
+const FindOrCreateStudentMutation = gql`
+    mutation($name: String!, $passcode: String!, $email: String) {
+        findOrCreateStudent(name: $name, passcode: $passcode, email: $email) {
+            id
+        }
+    }
+`;
+
+const GetClassQuery = gql`
+    query($textid: String!) {
+        class(textid: $textid) {
+            id
+        }
+    }
+`
 
 const ClassNameField: React.FC = () => {
-    const [_, { value }] = useField('name');
+    const [_, { value, touched }] = useField('name');
     const [field, meta, helper] = useField('textid');
+    const [getClass, { loading, error, data }] = useLazyQuery(GetClassQuery);
 
     useEffect(() => {
         const textid = value.toLowerCase().replace(/ /gi, '-').replace(/[^a-z0-9\-]/gi, '');
         helper.setValue(textid);
     }, [value]);
 
-    // TypeScript hack to add an AbortController
-    // Abort code from https://www.codingdeft.com/posts/fetch-cancel-previous-request/
-    const ourWindow: Window & typeof globalThis & {
-        controller?: AbortController
-    } = window;
-
     const validateTextId = async (textid: string): Promise<string | undefined> => {
         let error;
         if (!textid) {
             error = 'Name cannot be empty'
         } else {
-            if (ourWindow.controller) {
-                ourWindow.controller.abort();
-                error = "";
-            }
-            ourWindow.controller = new AbortController();
-            const signal = ourWindow.controller.signal;
-            try {
-                const res = await fetch('/api/class?' + new URLSearchParams({
-                    textid
-                }), {
-                    method: 'GET',
-                    signal,
-                });
-                const json = await res.json();
-                if (!('error' in json)) {
-                    error = 'Text ID taken';
-                }
-            } catch (e) {
-                if (e instanceof DOMException && e.name === 'AbortError') {
-                    error = '';
-                } else {
-                    error = 'Failed to check text ID';
-                    console.error(e);
-                }
+            const _class = await getClass({
+                variables: { textid }
+            });
+            if (_class.data.class) {
+                error = 'Text ID taken';
             }
         }
 
@@ -75,7 +78,7 @@ const ClassNameField: React.FC = () => {
                     validate={validateTextId}
                     disabled
                 />
-                {meta.touched && <span className="text-red-500">{meta.error}</span>}
+                {touched && <span className="text-red-500">{meta.error}</span>}
             </p>
         </div >
     )
@@ -162,11 +165,15 @@ export const ClassStudentsField: React.FC<ClassStudentsFieldProp> = ({ validateF
     } else if (meta.error) {
         const errors = meta.error as any as Record<string, string>[];
         const index = errors.findIndex(e => e);
-        console.log(index);
         if (index >= 0) {
-            let key = Object.keys(errors[index])[0];
-            error = `Student ${parseInt(index as any as string) + 1}: ${errors[index][key]}`
+            if (typeof errors[index] === 'string') {
+                error = `Student ${parseInt(index as any as string) + 1}: ${errors[index]}`
+            } else {
+                let key = Object.keys(errors[index])[0];
+                error = `Student ${parseInt(index as any as string) + 1}: ${errors[index][key]}`
+            }
         }
+        console.log(meta.error);
     }
 
     const importStudents = (students: ImportedStudent[]) => {
@@ -225,6 +232,7 @@ export const ClassStudentsField: React.FC<ClassStudentsFieldProp> = ({ validateF
 interface ClassCreatorProps {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
+    doRefetch: () => void,
 }
 
 interface FormValues {
@@ -233,8 +241,11 @@ interface FormValues {
     students: ImportedStudent[],
 }
 
-export const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen }) => {
+export const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen, doRefetch }) => {
     const router = useRouter();
+    const [createClass] = useMutation(CreateClassMutation);
+    const [findOrCreateStudent] = useMutation(FindOrCreateStudentMutation);
+
     return (
         <Dialog
             open={isOpen}
@@ -249,31 +260,46 @@ export const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen })
 
                     <Formik
                         initialValues={{ name: '', textid: '', students: [{ name: '', passcode: '' }] } as FormValues}
-                        onSubmit={({ name, textid, students }, { setSubmitting, setStatus }) => {
-                            fetch('/api/class', {
-                                method: 'POST',
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify({
-                                    name,
-                                    textid,
-                                    students,
-                                })
-                            }).then((result) => {
-                                result.json().then((res) => {
+                        onSubmit={async ({ name, textid, students }, { setSubmitting, setStatus, setFieldError, resetForm }) => {
+                            let index = 0;
+                            const studentIds: string[] = [];
+
+                            for (const student of students) {
+                                try {
+                                    const data = await findOrCreateStudent({
+                                        variables: {
+                                            name: student.name,
+                                            passcode: student.passcode,
+                                            email: student.email,
+                                        }
+                                    });
+                                    studentIds.push(data.data.findOrCreateStudent.id);
+                                } catch (error) {
+                                    setFieldError(`students.${index}`, error.toString());
                                     setSubmitting(false);
-                                    if ('error' in res) {
-                                        setStatus({ submitError: res['error'] });
-                                    } else {
-                                        router.reload();
+                                    return;
+                                }
+                                index++;
+                            }
+
+                            try {
+                                await createClass({
+                                    variables: {
+                                        textid,
+                                        name,
+                                        students: studentIds,
                                     }
-                                }).catch(() => {
-                                    setSubmitting(false);
                                 });
-                            }).catch(() => {
+                                resetForm();
                                 setSubmitting(false);
-                            });
+                                setIsOpen(false);
+                                doRefetch();
+                            } catch (error) {
+                                setStatus({
+                                    submitError: error.toString(),
+                                });
+                                setSubmitting(false);
+                            }
                         }}
                     >
                         {({ isSubmitting, isValidating, isValid, validateForm, status }) => {
@@ -284,7 +310,7 @@ export const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen })
                                     <ClassStudentsField validateForm={validateForm} />
 
                                     <div className="flex gap-2 items-center">
-                                        <Button solid={true} action={() => { }} disabled={loading || !isValid}>
+                                        <Button solid={true} action={() => { }} disabled={loading || !isValid} type="submit">
                                             Create
                                         </Button>
                                         <Button action={() => setIsOpen(false)} preventDefault={true}>Cancel</Button>

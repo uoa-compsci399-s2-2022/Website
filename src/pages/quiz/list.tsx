@@ -10,38 +10,66 @@ import ImportQuestions from '@/components/question_import';
 import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { isStudent } from '@/lib/util';
-import { QuizQuestion } from '@prisma/client';
+import { QuizQuestion, User } from '@prisma/client';
 import { useRouter } from 'next/router';
 import prisma from '@/lib/prisma';
 import { Disclosure } from '@headlessui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faEye, faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import Link from 'next/link';
+import { addApolloState, initializeApollo } from '@/lib/apollo';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import Button from '@/components/button';
+import { QuestionCreator } from '@/components/question_creator';
+
+const GetQuestionsQuery = gql`
+    query {
+        questions {
+            id
+            type
+            category
+            content
+            attribution
+            user {
+                id
+                name
+                email
+            }
+        }
+    }
+`;
+
+const CreateQuestionMutation = gql`
+    mutation($type: String!, $category: String!, $content: JSON!, $attribution: String) {
+        createQuestion(type: $type, category: $category, content: $content, attribution: $attribution) {
+            id
+        }
+    }
+`
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await unstable_getServerSession(context.req, context.res, authOptions);
 
     if (session?.user && !isStudent(session)) {
-        const questions = await prisma.quizQuestion.findMany({
-            where: {
-                user: {
-                    id: session.user.uid,
-                },
-            },
+        const apolloClient = initializeApollo(context.req.cookies);
+
+        await apolloClient.query({
+            query: GetQuestionsQuery,
         });
 
-        return {
-            props: { questions },
-        }
+        return addApolloState(apolloClient, {
+            props: {},
+        });
     } else {
-        console.log('no session');
-        return { props: {} }
+        return {
+            props: {},
+            redirect: {
+                permanent: false,
+                destination: '/',
+            }
+        };
     }
 };
-
-interface QuizListProps {
-    questions?: QuizQuestion[],
-}
 
 interface Category {
     key: string,
@@ -152,36 +180,40 @@ const CategoryComponent: React.FC<{ name: string, category: Category }> = ({ nam
     );
 }
 
-const QuizList: NextPage<QuizListProps> = ({ questions }) => {
+const QuizList: NextPage = ({ }) => {
     const router = useRouter();
     const [quizCreatorOpen, setQuizCreatorOpen] = useState(false);
+    const [questionCreatorOpen, setQuestionCreatorOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
 
-    const categories = sortQuestionsIntoCategories(questions ?? []);
-    console.log(categories);
+    const { data, refetch } = useQuery(GetQuestionsQuery);
+    const [createQuestion] = useMutation(CreateQuestionMutation);
 
-    const uploadQuestions = (questions: QuizQuestionProps[]) => {
+    const questions = data.questions as (QuizQuestion & {
+        user: User,
+    })[];
+
+    const categories = sortQuestionsIntoCategories(questions);
+
+    const uploadQuestions = async (questions: QuizQuestionProps[]) => {
         setUploading(true);
-        fetch('/api/question', {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(questions)
-        }).then((result) => {
-            result.json().then((res) => {
+
+        let index = 0;
+        for (const question of questions) {
+            try {
+                await createQuestion({
+                    variables: {
+                        ...question
+                    }
+                });
+            } catch (error) {
+                alert(error.toString());
                 setUploading(false);
-                if ('error' in res) {
-                    alert(res['error']);
-                } else {
-                    router.reload();
-                }
-            }).catch(() => {
-                setUploading(false);
-            });
-        }).catch(() => {
-            setUploading(false);
-        });
+            }
+            index++;
+        }
+
+        refetch();
     }
 
     return (
@@ -209,10 +241,11 @@ const QuizList: NextPage<QuizListProps> = ({ questions }) => {
                 </div>
                 <div className="w-full md:w-1/2">
                     <div className="rounded-lg bg-slate-600 m-4">
-                        <div className="flex flex-row p-6">
+                        <div className="flex flex-row p-6 gap-2">
                             <h1 className="text-white text-3xl flex-grow">
                                 your questions
                             </h1>
+                            <Button solid={true} action={() => setQuestionCreatorOpen(true)}>New</Button>
                             <ImportQuestions onImport={(questions) => { uploadQuestions(questions) }} />
                         </div>
                         <div className="px-4">
@@ -237,6 +270,10 @@ const QuizList: NextPage<QuizListProps> = ({ questions }) => {
             <QuizCreator
                 isOpen={quizCreatorOpen}
                 setIsOpen={setQuizCreatorOpen}
+            />
+            <QuestionCreator
+                isOpen={questionCreatorOpen}
+                setIsOpen={setQuestionCreatorOpen}
             />
         </main>
     );

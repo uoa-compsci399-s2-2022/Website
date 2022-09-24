@@ -3,16 +3,42 @@
  * adding new students, modifying the existing students, and create groups of
  * students.  We also want to assign quizzes from this page
  **/
-import { isStudent } from '@/lib/util';
 import type { GetServerSideProps, NextPage } from 'next';
 import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
-import { Class, Student, User } from '@prisma/client';
+import { gql, useQuery } from '@apollo/client';
 import ImportStudents from '@/components/student_import';
 import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { ClassUpdate } from '../api/class';
-import prisma from '@/lib/prisma';
+import { isStudent } from '@/lib/util';
+import { addApolloState, initializeApollo } from '@/lib/apollo';
+import { Group, Student, User, Class as PrismaClass } from '@prisma/client';
+
+const GetClassQuery = gql`
+    query($textid: String!) {
+        class(textid: $textid) {
+            id
+            textid
+            name
+            students {
+                id
+                name
+                email
+                passcode
+            }
+            users {
+                id
+                name
+                email
+            }
+            groups {
+                id
+                name
+                anonymous
+                passcode
+            }
+        }
+    }
+`;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await unstable_getServerSession(context.req, context.res, authOptions);
@@ -22,43 +48,46 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (typeof classid === 'string') textid = classid;
 
     if (session?.user && !isStudent(session)) {
-        const _class = await prisma.class.findFirst({
-            where: {
-                users: {
-                    some: {
-                        email: session.user.email,
-                    }
-                },
-                textid,
-            },
-            include: {
-                students: true,
-                users: true,
+        const apolloClient = initializeApollo(context.req.cookies);
+
+        await apolloClient.query({
+            query: GetClassQuery,
+            variables: {
+                textid
             }
         });
 
-        return {
-            props: { _class },
-        }
+        return addApolloState(apolloClient, {
+            props: {
+                textid
+            },
+        });
     } else {
-        console.log('no session');
-        return { props: {} }
+        return {
+            props: {},
+            redirect: {
+                permanent: false,
+                destination: '/',
+            }
+        };
     }
 };
 
-interface IndexProps {
-    _class?: (Class & {
-        students: Student[],
-        users: User[],
+
+const Class: NextPage<{ textid: string }> = ({ textid }) => {
+    const { loading, error, data, refetch } = useQuery(GetClassQuery, {
+        variables: { textid }
     })
-}
+    const [dataError, setError] = useState('');
 
+    const _class = data.class as PrismaClass & {
+        students: Student[],
+        groups: Group[],
+        users: User[],
+    } | null;
 
-const Class: NextPage<IndexProps> = ({ _class }) => {
-    const router = useRouter();
-    const [error, setError] = useState('');
-
-    const updateClass = (props: ClassUpdate): void => {
+    /*
+    const updateClass = (props: any): void => {
         fetch('/api/class', {
             method: 'PUT',
             headers: {
@@ -108,25 +137,26 @@ const Class: NextPage<IndexProps> = ({ _class }) => {
             }
         });
     };
+    */
 
     return (
         <div className="p-4">
             {_class && <>
                 <p className="text-white text-xl">Class:
-                    <a onClick={() => changeName()} className="pl-2 cursor-pointer">{_class.name}</a>
+                    <a onClick={() => { }} className="pl-2 cursor-pointer">{_class.name}</a>
                 </p>
                 <ul>
                     {_class.students.map((student) => (
                         <li className="text-white" key={student.passcode}>
                             {student.name} ({student.passcode})
-                            <a onClick={() => removeStudent(student)} className="pl-2 cursor-pointer">remove</a>
+                            <a onClick={() => { }} className="pl-2 cursor-pointer">remove</a>
                         </li>
                     ))}
                 </ul>
-                <ImportStudents onImport={onImport} />
-                <p>{error}</p>
+                <ImportStudents onImport={() => { }} />
+                <p>{error && error.message}</p>
             </>}
-        </div>
+        </div >
     );
 }
 

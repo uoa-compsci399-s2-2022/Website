@@ -5,7 +5,7 @@ import React, { Dispatch, SetStateAction, useEffect } from "react";
 import Button from "./button";
 import { LoadingSpinner } from './loading';
 
-interface QuizCreatorProps {
+interface QuestionCreatorProps {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
 }
@@ -16,7 +16,7 @@ interface FormValues {
     students: ImportedStudent[],
 }
 
-export const QuizCreator: React.FC<QuizCreatorProps> = ({ isOpen, setIsOpen }) => {
+export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ isOpen, setIsOpen }) => {
     const router = useRouter();
     return (
         <Dialog
@@ -28,7 +28,7 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({ isOpen, setIsOpen }) =
             <div className="fixed inset-0 flex items-center justify-center p-4">
                 <Dialog.Panel className="w-full sm:max-w-xl mx-auto rounded bg-white p-4">
 
-                    <Dialog.Title className="text-xl font-bold">Quiz Creator</Dialog.Title>
+                    <Dialog.Title className="text-xl font-bold">Question Creator</Dialog.Title>
 
                     <Formik
                         initialValues={{ name: '', textid: '', students: [{ name: '', passcode: '' }] } as FormValues}
@@ -63,7 +63,6 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({ isOpen, setIsOpen }) =
                             const loading = isSubmitting || isValidating;
                             return (
                                 <Form className="flex flex-col gap-2">
-
                                     <div className="flex gap-2 items-center">
                                         <Button solid={true} action={() => { }} disabled={loading || !isValid}>
                                             Create

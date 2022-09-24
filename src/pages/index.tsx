@@ -8,48 +8,32 @@ import { unstable_getServerSession } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
 import { isStudent } from '@/lib/util';
-import { Class, Student, User } from '@prisma/client';
-import prisma from '@/lib/prisma';
+import { addApolloState, initializeApollo } from '@/lib/apollo';
 import { authOptions } from './api/auth/[...nextauth]';
-import Instructor from './_instructor';
+import Instructor, { GetClassesQuery } from './_instructor';
 import Landing from './_landing';
 import StudentPage from './_student';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await unstable_getServerSession(context.req, context.res, authOptions);
 
-  if (session?.user && !isStudent(session)) {
-    const classes = await prisma.class.findMany({
-      where: {
-        users: {
-          some: {
-            id: session.user.uid,
-          }
-        },
-      },
-      include: {
-        students: true,
-        users: true,
-      }
-    });
+  if (session && session.user && !session.user.student) {
+    const apolloClient = initializeApollo(context.req.cookies)
 
-    return {
-      props: { classes },
-    }
+    await apolloClient.query({
+      query: GetClassesQuery,
+    })
+
+    return addApolloState(apolloClient, {
+      props: {},
+    });
   } else {
     console.log('no session');
     return { props: {} }
   }
 };
 
-interface IndexProps {
-  classes?: (Class & {
-    students: Student[],
-    users: User[],
-  })[]
-}
-
-const Index: NextPage<IndexProps> = ({ classes }) => {
+const Index: NextPage = ({ }) => {
   const { data: session, status } = useSession()
   const loading = status === "loading";
 
@@ -69,7 +53,7 @@ const Index: NextPage<IndexProps> = ({ classes }) => {
             isStudent(session) ? (
               <StudentPage session={session} />
             ) : (
-              <Instructor session={session} classes={classes} />
+              <Instructor session={session} />
             )
           ) : (
             <Landing />

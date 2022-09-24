@@ -9,6 +9,7 @@ interface ButtonProps {
     action: () => void,
     preventDefault?: boolean,
     children?: React.ReactNode;
+    type?: "button" | "submit" | "reset",
 }
 
 interface Colours {
@@ -29,7 +30,7 @@ const colours: Colours = {
     }
 }
 
-const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, preventDefault }) => {
+const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, preventDefault, type }) => {
 
     const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         action();
@@ -41,6 +42,7 @@ const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, prev
     let colour = colours[solid ? 'solid' : 'not_solid'][disabled ? 'disabled' : 'enabled'];
 
     return <button
+        type={type}
         onClick={onClick}
         className={`inline-flex gap-2 items-center justify-center rounded-md border shadow-sm px-4 py-2 text-sm font-medium focus:outline-none ${colour}`}
         disabled={disabled}

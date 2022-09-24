@@ -11,6 +11,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
   - [NextAuth.js](https://next-auth.js.org/)
   - [Typescript](https://www.typescriptlang.org/)
   - [Prisma](https://www.prisma.io/)
+  - [Apollo Server Micro](https://www.npmjs.com/package/apollo-server-micro)
+  - [GraphQL](https://graphql.org/)
 - Frontend
   - [React](https://reactjs.org/)
   - [TailwindCSS](https://tailwindcss.com/)
@@ -19,9 +21,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
   - [csv-parse](https://www.npmjs.com/package/csv-parse/)
   - [fast-xml-parser](https://www.npmjs.com/package/fast-xml-parser)
   - [formik](https://formik.org/)
+  - [Apollo Client](https://www.apollographql.com/apollo-client)
 - Hosting
-  - [Vercel](https://vercel.com/)
-  - [Heroku Postgres](https://www.heroku.com/postgres/)
+  - [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/)
+  - [AWS RDS Database](https://aws.amazon.com/rds/) (Postgres)
+  - [AWS S3](https://aws.amazon.com/s3)
 
 ## Getting Started
 

@@ -64,7 +64,7 @@ model User {
 
 model Class {
   id       String    @id @default(cuid())
-  textid   String
+  textid   String    @unique
   name     String
   users    User[]
   students Student[]
@@ -92,6 +92,7 @@ model Group {
   class     Class            @relation(fields: [classId], references: [id])
   classId   String
   quizzes   QuizAssignment[]
+  sessions  QuizSession[]
 }
 
 model Quiz {
@@ -107,7 +108,7 @@ model Quiz {
 }
 
 model QuizQuestionLink {
-  timeLimit      Int
+  timeLimit      Int?
   quiz           Quiz         @relation(fields: [quizId], references: [id])
   quizId         String
   quizQuestion   QuizQuestion @relation(fields: [quizQuestionId], references: [id])
@@ -121,7 +122,7 @@ model QuizQuestion {
   type        String
   category    String
   content     Json
-  attribution String
+  attribution String?
   quizLinks   QuizQuestionLink[]
   user        User               @relation(fields: [userId], references: [id])
   userId      String
@@ -129,14 +130,14 @@ model QuizQuestion {
 
 model QuizAssignment {
   id         String        @id @default(cuid())
-  quiz       Quiz          @relation(fields: [quizId], references: [id])
-  assignedBy User          @relation(fields: [userId], references: [id])
-  students   Student[]
-  groups     Group[]
-  quizId     String
-  userId     String
   start      DateTime
   end        DateTime
+  quiz       Quiz          @relation(fields: [quizId], references: [id])
+  quizId     String
+  assignedBy User          @relation(fields: [userId], references: [id])
+  userId     String
+  students   Student[]
+  groups     Group[]
   sessions   QuizSession[]
 }
 
@@ -149,4 +150,6 @@ model QuizSession {
   studentId        String
   quizAssignment   QuizAssignment @relation(fields: [quizAssignmentId], references: [id])
   quizAssignmentId String
+  Group            Group?         @relation(fields: [groupId], references: [id])
+  groupId          String?
 }
