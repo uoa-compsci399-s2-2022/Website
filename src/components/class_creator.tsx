@@ -5,8 +5,8 @@ import React, { Dispatch, SetStateAction, useEffect } from "react";
 import Button from "./button";
 import ImportStudents from "./student_import";
 import { LoadingSpinner } from './loading';
-import { gql, useLazyQuery, useMutation, useQuery } from '@apollo/client';
-import { Student } from '@prisma/client';
+import { gql, useLazyQuery, useMutation } from '@apollo/client';
+import { Modal } from './modal';
 
 const CreateClassMutation = gql`
     mutation($textid: String!, $name: String!, $students: [String!]) {
@@ -242,87 +242,78 @@ interface FormValues {
 }
 
 export const ClassCreator: React.FC<ClassCreatorProps> = ({ isOpen, setIsOpen, doRefetch }) => {
-    const router = useRouter();
     const [createClass] = useMutation(CreateClassMutation);
     const [findOrCreateStudent] = useMutation(FindOrCreateStudentMutation);
 
     return (
-        <Dialog
-            open={isOpen}
-            onClose={() => setIsOpen(false)}
-            className="relative z-50 w-full"
+        <Modal
+            isOpen={isOpen}
+            setIsOpen={() => setIsOpen(false)}
+            title="Class Creator"
         >
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-            <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="w-full sm:max-w-xl mx-auto rounded bg-white p-4">
+            <Formik
+                initialValues={{ name: '', textid: '', students: [{ name: '', passcode: '' }] } as FormValues}
+                onSubmit={async ({ name, textid, students }, { setSubmitting, setStatus, setFieldError, resetForm }) => {
+                    let index = 0;
+                    const studentIds: string[] = [];
 
-                    <Dialog.Title className="text-xl font-bold">Class Creator</Dialog.Title>
-
-                    <Formik
-                        initialValues={{ name: '', textid: '', students: [{ name: '', passcode: '' }] } as FormValues}
-                        onSubmit={async ({ name, textid, students }, { setSubmitting, setStatus, setFieldError, resetForm }) => {
-                            let index = 0;
-                            const studentIds: string[] = [];
-
-                            for (const student of students) {
-                                try {
-                                    const data = await findOrCreateStudent({
-                                        variables: {
-                                            name: student.name,
-                                            passcode: student.passcode,
-                                            email: student.email,
-                                        }
-                                    });
-                                    studentIds.push(data.data.findOrCreateStudent.id);
-                                } catch (error) {
-                                    setFieldError(`students.${index}`, error.toString());
-                                    setSubmitting(false);
-                                    return;
+                    for (const student of students) {
+                        try {
+                            const data = await findOrCreateStudent({
+                                variables: {
+                                    name: student.name,
+                                    passcode: student.passcode,
+                                    email: student.email,
                                 }
-                                index++;
-                            }
+                            });
+                            studentIds.push(data.data.findOrCreateStudent.id);
+                        } catch (error) {
+                            setFieldError(`students.${index}`, error.toString());
+                            setSubmitting(false);
+                            return;
+                        }
+                        index++;
+                    }
 
-                            try {
-                                await createClass({
-                                    variables: {
-                                        textid,
-                                        name,
-                                        students: studentIds,
-                                    }
-                                });
-                                resetForm();
-                                setSubmitting(false);
-                                setIsOpen(false);
-                                doRefetch();
-                            } catch (error) {
-                                setStatus({
-                                    submitError: error.toString(),
-                                });
-                                setSubmitting(false);
+                    try {
+                        await createClass({
+                            variables: {
+                                textid,
+                                name,
+                                students: studentIds,
                             }
-                        }}
-                    >
-                        {({ isSubmitting, isValidating, isValid, validateForm, status }) => {
-                            const loading = isSubmitting || isValidating;
-                            return (
-                                <Form className="flex flex-col gap-2">
-                                    <ClassNameField />
-                                    <ClassStudentsField validateForm={validateForm} />
+                        });
+                        resetForm();
+                        setSubmitting(false);
+                        setIsOpen(false);
+                        doRefetch();
+                    } catch (error) {
+                        setStatus({
+                            submitError: error.toString(),
+                        });
+                        setSubmitting(false);
+                    }
+                }}
+            >
+                {({ isSubmitting, isValidating, isValid, validateForm, status }) => {
+                    const loading = isSubmitting || isValidating;
+                    return (
+                        <Form className="flex flex-col gap-2">
+                            <ClassNameField />
+                            <ClassStudentsField validateForm={validateForm} />
 
-                                    <div className="flex gap-2 items-center">
-                                        <Button solid={true} action={() => { }} disabled={loading || !isValid} type="submit">
-                                            Create
-                                        </Button>
-                                        <Button action={() => setIsOpen(false)} preventDefault={true}>Cancel</Button>
-                                        {loading && <LoadingSpinner colour="black" />}
-                                        {status && status.submitError && <span className="text-red-500">{'Server error: ' + status.submitError}</span>}
-                                    </div>
-                                </Form>
-                            )
-                        }}
-                    </Formik>
-                </Dialog.Panel>
-            </div>
-        </Dialog>
+                            <div className="flex gap-2 items-center">
+                                <Button solid={true} action={() => { }} disabled={loading || !isValid} type="submit">
+                                    Create
+                                </Button>
+                                <Button action={() => setIsOpen(false)} preventDefault={true}>Cancel</Button>
+                                {loading && <LoadingSpinner colour="black" />}
+                                {status && status.submitError && <span className="text-red-500">{'Server error: ' + status.submitError}</span>}
+                            </div>
+                        </Form>
+                    )
+                }}
+            </Formik>
+        </Modal>
     )
 };

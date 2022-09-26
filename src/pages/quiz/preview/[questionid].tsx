@@ -10,8 +10,8 @@ import { gql, useQuery } from '@apollo/client';
 import dynamic from 'next/dynamic';
 import { QuizQuestion, User } from '@prisma/client';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
-import DescriptionQuestion from '@/components/question/description';
-import MultiChoiceQuestion from '@/components/question/multichoice';
+import { DescriptionQuestion } from '@/components/question/description';
+import { MultiChoiceQuestion } from '@/components/question/multichoice';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
 
 const GetQuestionQuery = gql`

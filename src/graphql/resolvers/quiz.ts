@@ -12,6 +12,15 @@ export const Quiz = {
             upcomingQuizzes: [QuizAssignment!]!
             previousQuizzes: [QuizAssignment!]!
         }
+
+        extend type Mutation {
+            createQuiz(
+                name: String!,
+                description: String!,
+                questions: Int!, 
+                timeLimit: Int!
+            ): Quiz
+        }
     `,
     queries: {
         quiz: (_parent: any, arg: { id: string }, context: Context) => {
@@ -94,5 +103,37 @@ export const Quiz = {
     },
     mutations: {
 
+        createQuiz: (_parent: any, args: { name: string, description: string, questions: number, timeLimit: number }, context: Context) => {
+            ProtectQuery(context, false);
+
+            return context.prisma.quiz.create({
+                data: {
+                    user: {
+                        connect: {
+                            id: context.session.user.uid,
+                        }
+                    },
+                    name: args.name,
+                    description: args.description,
+                    timeLimit: args.timeLimit,
+                    questions: {
+                        create: new Array(args.questions).map(() => { return {} })
+                    }
+                },
+                include: {
+                    assignments: {
+                        include: {
+                            sessions: true,
+                            students: true,
+                        }
+                    },
+                    questions: {
+                        include: {
+                            quizQuestion: true,
+                        }
+                    },
+                }
+            })
+        }
     }
 }

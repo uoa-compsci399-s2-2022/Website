@@ -108,13 +108,13 @@ model Quiz {
 }
 
 model QuizQuestionLink {
-  timeLimit      Int?
-  quiz           Quiz         @relation(fields: [quizId], references: [id])
-  quizId         String
-  quizQuestion   QuizQuestion @relation(fields: [quizQuestionId], references: [id])
-  quizQuestionId String
+  id String @id @default(cuid())
 
-  @@id([quizId, quizQuestionId])
+  timeLimit      Int?
+  quiz           Quiz          @relation(fields: [quizId], references: [id])
+  quizId         String
+  quizQuestion   QuizQuestion? @relation(fields: [quizQuestionId], references: [id])
+  quizQuestionId String?
 }
 
 model QuizQuestion {

@@ -56,7 +56,7 @@ export const typeDefs = gql`
         timeLimit: Int
         user: User
         assignments: [QuizAssignment!]
-        questions: [QuizQuestionLink!]
+        questions: [QuizQuestionLink]
     }
 
     type QuizQuestionLink {

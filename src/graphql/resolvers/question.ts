@@ -46,6 +46,7 @@ export const Question = {
                             quiz: true,
                         }
                     },
+                    user: true,
                 }
             });
         },
