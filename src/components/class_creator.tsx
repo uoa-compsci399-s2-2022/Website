@@ -66,7 +66,7 @@ const ClassNameField: React.FC = () => {
             </label>
             <Field
                 id="name"
-                className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                className="outline outline-1 focus:outline-2 rounded w-full p-2 bg-background text-text-colour"
                 name="name"
                 type="text"
             />
@@ -115,25 +115,25 @@ const ClassStudentField: React.FC<ClassStudentFieldProps> = ({ index, remove }) 
     }
 
     return (
-        <tr>
+        <tr className="bg-background text-text-colour">
             <td className="border border-1 text-center px-2">{index + 1}</td>
             <td className="border border-1">
                 <Field
-                    className="w-full p-0.5"
+                    className="w-full p-0.5 bg-background text-text-colour"
                     name={`students.${index}.name`}
                     validate={(name: string) => validateNonEmpty('Name', name)}
                 />
             </td>
             <td className="border border-1">
                 <Field
-                    className="w-full p-0.5"
+                    className="w-full p-0.5 bg-background text-text-colour"
                     name={`students.${index}.passcode`}
                     validate={(passcode: string) => validateNonEmpty('Passcode', passcode)}
                 />
             </td>
             <td className="border border-1">
                 <Field
-                    className="w-full p-0.5"
+                    className="w-full p-0.5 bg-background text-text-colour"
                     name={`students.${index}.email`}
                     validate={validateEmail}
                 />

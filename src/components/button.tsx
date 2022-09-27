@@ -21,12 +21,12 @@ interface Colours {
 
 const colours: Colours = {
     solid: {
-        enabled: 'border-gray-300 bg-orange-500 text-gray-100 hover:bg-orange-600',
-        disabled: 'border-gray-300 bg-orange-300 text-gray-100',
+        enabled: 'border-gray-300 bg-background text-text-colour hover:bg-orange-600',
+        disabled: 'border-gray-300 bg-background text-text-colour',
     },
     not_solid: {
-        enabled: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-        disabled: 'border-gray-300 bg-grey-300 text-gray-400',
+        enabled: 'border-gray-300 bg-background text-text-colour-700 hover:bg-accent',
+        disabled: 'border-gray-300 bg-background text-text-colour',
     }
 }
 
