@@ -7,11 +7,18 @@ import type { GetServerSideProps, NextPage } from 'next';
 import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { gql, useQuery } from '@apollo/client';
-import ImportStudents from '@/components/student_import';
 import { useState } from 'react';
 import { isStudent } from '@/lib/util';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
 import { Group, Student, User, Class as PrismaClass } from '@prisma/client';
+import ClassCardContainer from '@/components/class/class_card_container';
+import MainClassCard from '@/components/class/main_class_card';
+import StatsCard from '@/components/class/stats_card';
+import ClassCard from '@/components/class_card';
+import StudentsCard from '@/components/class/students_card';
+import GroupsCard from '@/components/class/groups_card';
+import QuizListCard from '@/components/class/quiz_list_card';
+
 
 const GetClassQuery = gql`
     query($textid: String!) {
@@ -39,6 +46,7 @@ const GetClassQuery = gql`
         }
     }
 `;
+
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await unstable_getServerSession(context.req, context.res, authOptions);
@@ -137,10 +145,10 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
             }
         });
     };
-    */
 
-    return (
-        <div className="p-4">
+
+    Old student list
+    <div className="p-4">
             {_class && <>
                 <p className="text-white text-xl">Class:
                     <a onClick={() => { }} className="pl-2 cursor-pointer">{_class.name}</a>
@@ -157,6 +165,25 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
                 <p>{error && error.message}</p>
             </>}
         </div >
+
+    */
+
+    return (
+        <div className="">
+            <ClassCardContainer cols="grid-cols-2">
+
+                <MainClassCard></MainClassCard>
+                <StatsCard></StatsCard>
+
+            </ClassCardContainer>
+            <ClassCardContainer cols="grid-cols-3">
+
+                <StudentsCard></StudentsCard>
+                <GroupsCard></GroupsCard>
+                <QuizListCard></QuizListCard>
+
+            </ClassCardContainer>
+        </div>
     );
 }
 
