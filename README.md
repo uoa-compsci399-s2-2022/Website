@@ -22,6 +22,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
   - [fast-xml-parser](https://www.npmjs.com/package/fast-xml-parser)
   - [formik](https://formik.org/)
   - [Apollo Client](https://www.apollographql.com/apollo-client)
+  - [React Markdown](https://github.com/remarkjs/react-markdown)
 - Hosting
   - [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/)
   - [AWS RDS Database](https://aws.amazon.com/rds/) (Postgres)

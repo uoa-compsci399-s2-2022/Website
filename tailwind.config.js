@@ -12,8 +12,10 @@ module.exports = {
         "accent": "#00ADB5",
         "nav-text": "#a0a8bb",
         "border": "#535965"
-    }
+      }
+    },
   },
-  plugins: [],
-  }
+  plugins: [
+    require('@tailwindcss/typography'),
+  ]
 }

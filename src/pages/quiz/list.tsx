@@ -3,22 +3,20 @@
  **/
 import { GetServerSideProps, NextPage } from 'next'
 import { useState } from 'react';
-import Card, { CardContainer } from '@/components/card';
-import QuizCard from '@/components/quiz_card';
-import { QuizCreator } from '@/components/quiz_creator';
-import ImportQuestions from '@/components/question_import';
 import { unstable_getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]';
-import { isStudent } from '@/lib/util';
-import { QuizQuestion, User } from '@prisma/client';
-import { useRouter } from 'next/router';
-import prisma from '@/lib/prisma';
+import { Quiz, QuizAssignment, QuizQuestion, User } from '@prisma/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { Disclosure } from '@headlessui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faEye, faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import Link from 'next/link';
+import Card, { CardContainer } from '@/components/card';
+import QuizCard from '@/components/quiz_card';
+import { QuizCreator } from '@/components/quiz_creator';
+import ImportQuestions from '@/components/question_import';
+import { authOptions } from '../api/auth/[...nextauth]';
+import { isStudent } from '@/lib/util';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
-import { gql, useMutation, useQuery } from '@apollo/client';
 import Button from '@/components/button';
 import { QuestionCreator } from '@/components/question_creator';
 
@@ -39,6 +37,31 @@ const GetQuestionsQuery = gql`
     }
 `;
 
+const GetQuizzesQuery = gql`
+    query {
+        quizzes {
+            id
+            created
+            name
+            description
+            timeLimit
+            user {
+                id
+                name
+                email
+            }
+            assignments {
+                id
+                start
+                end
+            }
+            questions {
+                id
+            }
+        }
+    }
+`;
+
 const CreateQuestionMutation = gql`
     mutation($type: String!, $category: String!, $content: JSON!, $attribution: String) {
         createQuestion(type: $type, category: $category, content: $content, attribution: $attribution) {
@@ -54,7 +77,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const apolloClient = initializeApollo(context.req.cookies);
 
         await apolloClient.query({
-            query: GetQuestionsQuery,
+            query: GetQuestionsQuery
+        });
+        await apolloClient.query({
+            query: GetQuizzesQuery
         });
 
         return addApolloState(apolloClient, {
@@ -181,15 +207,21 @@ const CategoryComponent: React.FC<{ name: string, category: Category }> = ({ nam
 }
 
 const QuizList: NextPage = ({ }) => {
-    const router = useRouter();
     const [quizCreatorOpen, setQuizCreatorOpen] = useState(false);
     const [questionCreatorOpen, setQuestionCreatorOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
 
-    const { data, refetch } = useQuery(GetQuestionsQuery);
+    const { data: quizData } = useQuery(GetQuizzesQuery);
+    const { data: questionData, refetch } = useQuery(GetQuestionsQuery);
     const [createQuestion] = useMutation(CreateQuestionMutation);
 
-    const questions = data.questions as (QuizQuestion & {
+    const quizzes = quizData.quizzes as (Quiz & {
+        user: User,
+        assignments: QuizAssignment[],
+        questions: (QuizQuestion | null)[]
+    })[];
+
+    const questions = questionData.questions as (QuizQuestion & {
         user: User,
     })[];
 
@@ -227,9 +259,9 @@ const QuizList: NextPage = ({ }) => {
                         <CardContainer>
                             {
                                 /* we have no quizzes loaded yet */
-                                [].map((data) => {
+                                quizzes.map((data, index: number) => {
                                     return (
-                                        <QuizCard quiz={data} key={data}></QuizCard>
+                                        <QuizCard quiz={data} key={`quiz-${index}`} />
                                     );
                                 })
                             }
@@ -270,6 +302,7 @@ const QuizList: NextPage = ({ }) => {
             <QuizCreator
                 isOpen={quizCreatorOpen}
                 setIsOpen={setQuizCreatorOpen}
+                editor={false}
             />
             <QuestionCreator
                 isOpen={questionCreatorOpen}

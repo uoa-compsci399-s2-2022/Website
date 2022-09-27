@@ -20,6 +20,13 @@ export const Quiz = {
                 questions: Int!, 
                 timeLimit: Int!
             ): Quiz
+
+            updateQuiz(
+                id: String!,
+                name: String,
+                description: String,
+                timeLimit: Int
+            ): Quiz
         }
     `,
     queries: {
@@ -117,8 +124,40 @@ export const Quiz = {
                     description: args.description,
                     timeLimit: args.timeLimit,
                     questions: {
-                        create: new Array(args.questions).map(() => { return {} })
+                        create: new Array(args.questions).fill(0).map(() => {
+                            return {
+                                timeLimit: 0,
+                            }
+                        })
                     }
+                },
+                include: {
+                    assignments: {
+                        include: {
+                            sessions: true,
+                            students: true,
+                        }
+                    },
+                    questions: {
+                        include: {
+                            quizQuestion: true,
+                        }
+                    },
+                }
+            })
+        },
+
+        updateQuiz: (_parent: any, args: { id: string, name?: string, description?: string, timeLimit?: number }, context: Context) => {
+            ProtectQuery(context, false);
+
+            return context.prisma.quiz.update({
+                where: {
+                    id: args.id,
+                },
+                data: {
+                    name: args.name,
+                    description: args.description,
+                    timeLimit: args.timeLimit,
                 },
                 include: {
                     assignments: {
