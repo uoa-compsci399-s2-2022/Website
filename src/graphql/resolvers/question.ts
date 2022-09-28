@@ -15,12 +15,14 @@ export const Question = {
         extend type Mutation {
             createQuestion(
                 type: String!, 
+                name: String!,
                 category: String!, 
                 content: JSON!, 
                 attribution: String
             ): QuizQuestion
             updateQuestion(
                 id: String!,
+                name: String,
                 type: String,
                 category: String,
                 content: JSON,
@@ -88,7 +90,7 @@ export const Question = {
 
     },
     mutations: {
-        createQuestion: (_parent: any, args: { type: string, category: string, content: any, attribution?: string }, context: Context) => {
+        createQuestion: (_parent: any, args: { type: string, name: string, category: string, content: any, attribution?: string }, context: Context) => {
             ProtectQuery(context, false);
 
             return context.prisma.quizQuestion.create({
@@ -98,6 +100,7 @@ export const Question = {
                             id: context.session.user.uid,
                         }
                     },
+                    name: args.name,
                     type: args.type,
                     category: args.category,
                     content: args.content,
@@ -114,7 +117,7 @@ export const Question = {
             });
         },
 
-        updateQuestion: (_parent: any, args: { id: string, type?: string, category?: string, content?: any, attribution?: string }, context: Context) => {
+        updateQuestion: (_parent: any, args: { id: string, name?: string, type?: string, category?: string, content?: any, attribution?: string }, context: Context) => {
             ProtectQuery(context, false);
 
             return context.prisma.quizQuestion.update({

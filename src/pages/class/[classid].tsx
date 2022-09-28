@@ -172,15 +172,15 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
         <div className="">
             <ClassCardContainer cols="grid-cols-2">
 
-                <MainClassCard></MainClassCard>
-                <StatsCard></StatsCard>
+                <MainClassCard className={_class.name} />
+                <StatsCard />
 
             </ClassCardContainer>
             <ClassCardContainer cols="grid-cols-3">
 
-                <StudentsCard></StudentsCard>
-                <GroupsCard></GroupsCard>
-                <QuizListCard></QuizListCard>
+                <StudentsCard students={_class.students} doRefetch={() => refetch()} />
+                <GroupsCard />
+                <QuizListCard />
 
             </ClassCardContainer>
         </div>

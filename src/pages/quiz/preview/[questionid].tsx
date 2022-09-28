@@ -99,8 +99,7 @@ const QuestionPreview: NextPage<QuestionPreviewProps> = ({ id }) => {
                 <div className="rounded-lg bg-slate-600 m-4">
                     <h1 className="text-white text-3xl p-6 text-center">
                         {
-                            // @ts-ignore
-                            question.content.name
+                            question.name
                         } (preview)
                     </h1>
                     {content}

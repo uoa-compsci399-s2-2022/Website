@@ -103,7 +103,6 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
             case 'description': {
                 try {
                     const content = {
-                        name: question.name.text,
                         source: "moodle",
                         label: {
                             text: question.questiontext.text,
@@ -114,6 +113,7 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 
                     questions.push({
                         type: 'description',
+                        name: question.name.text,
                         category,
                         content,
                         attribution: '',
@@ -127,7 +127,6 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
             case 'multichoice': {
                 try {
                     const content = {
-                        name: question.name.text,
                         source: "moodle",
                         label: {
                             text: question.questiontext.text,
@@ -147,6 +146,7 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 
                     questions.push({
                         type: 'multichoice',
+                        name: question.name.text,
                         category,
                         content,
                         attribution: '',
@@ -159,7 +159,6 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
             case 'numerical': {
                 try {
                     const content = {
-                        name: question.name.text,
                         source: "moodle",
                         label: {
                             text: question.questiontext.text,
@@ -171,6 +170,7 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 
                     questions.push({
                         type: 'numerical',
+                        name: question.name.text,
                         category,
                         content,
                         attribution: '',

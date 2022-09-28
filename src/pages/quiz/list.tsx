@@ -25,8 +25,8 @@ const GetQuestionsQuery = gql`
         questions {
             id
             type
+            name
             category
-            content
             attribution
             user {
                 id
@@ -63,8 +63,8 @@ const GetQuizzesQuery = gql`
 `;
 
 const CreateQuestionMutation = gql`
-    mutation($type: String!, $category: String!, $content: JSON!, $attribution: String) {
-        createQuestion(type: $type, category: $category, content: $content, attribution: $attribution) {
+    mutation($type: String!, $name: String!, $category: String!, $content: JSON!, $attribution: String) {
+        createQuestion(type: $type, name: $name, category: $category, content: $content, attribution: $attribution) {
             id
         }
     }
@@ -168,8 +168,7 @@ const CategoryComponent: React.FC<{ name: string, category: Category }> = ({ nam
                                             className="flex items-center"
                                         >
                                             <span className="flex-grow">{
-                                                // @ts-ignore
-                                                question.content.name
+                                                question.name
                                             }</span>
                                             <Link href={`/quiz/preview/${question.id}`} passHref>
                                                 <a target="_blank" rel="noopener noreferrer">
@@ -230,7 +229,6 @@ const QuizList: NextPage = ({ }) => {
     const uploadQuestions = async (questions: QuizQuestionProps[]) => {
         setUploading(true);
 
-        let index = 0;
         for (const question of questions) {
             try {
                 await createQuestion({
@@ -242,7 +240,6 @@ const QuizList: NextPage = ({ }) => {
                 alert(error.toString());
                 setUploading(false);
             }
-            index++;
         }
 
         refetch();

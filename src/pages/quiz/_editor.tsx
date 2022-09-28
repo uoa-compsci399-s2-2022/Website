@@ -4,7 +4,7 @@
 import Button from '@/components/button';
 import { QuizCreator } from '@/components/quiz_creator';
 import { gql, useQuery } from '@apollo/client';
-import { Quiz } from '@prisma/client';
+import { Quiz, QuizAssignment, QuizQuestion, QuizQuestionLink } from '@prisma/client';
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -15,6 +15,13 @@ export const GetQuizQuery = gql`
             name
             description
             timeLimit
+            questions {
+                id
+                timeLimit
+                quizQuestion {
+                    id
+                }
+            }
         }
     }
 `;
@@ -30,7 +37,12 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
             id
         }
     });
-    const quiz = data.quiz as Quiz;
+    const quiz = data.quiz as Quiz & {
+        questions: (QuizQuestionLink & {
+            quizQuestion?: QuizQuestion
+        })[],
+        assignments: QuizAssignment[],
+    };
     const editorInitial = {
         name: quiz.name,
         description: quiz.description,
@@ -65,7 +77,23 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
                 <h3 className="text-white text-lg px-6">
                     Time limit: {quiz.timeLimit} minutes
                 </h3>
+                <div className="px-6 pb-6 flex flex-col gap-2">
+                    {
+                        quiz.questions.map((question, index) => {
+                            return (<div key={`question-${index}`}>
+                                <p className="text-white text-md">Question {index + 1}</p>
+                                {
+                                    question.quizQuestion ? (
+                                        <p>{JSON.stringify(question.quizQuestion)}</p>
+                                    ) : (
+                                        <h1 className="text-white">No question assigned.</h1>
+                                    )
+                                }
+                            </div>)
+                        })
+                    }
 
+                </div>
             </div>
         </div>
         <QuizCreator
@@ -76,7 +104,7 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
             doRefetch={() => refetch()}
             id={quiz.id}
         />
-    </div>
+    </div >
 }
 
 export default QuizEditor

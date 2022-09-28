@@ -44,6 +44,7 @@ interface QuizQuestionLinkProps {
 
 interface QuizQuestionProps {
     id?: string,
+    name: string,
     type: string,
     category: string,
     content: any,

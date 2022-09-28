@@ -121,6 +121,7 @@ model QuizQuestion {
   id          String             @id @default(cuid())
   type        String
   category    String
+  name        String
   content     Json
   attribution String?
   quizLinks   QuizQuestionLink[]

@@ -70,6 +70,7 @@ export const typeDefs = gql`
         id: String!
         type: String!
         category: String!
+        name: String!
         content: JSON!
         attribution: String
         quizLinks: [QuizQuestionLink!]
