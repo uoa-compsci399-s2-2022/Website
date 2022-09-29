@@ -136,18 +136,26 @@ const sortQuestionsIntoCategories = (questions: QuizQuestion[]): Record<string, 
     return categories;
 };
 
-const CategoryComponent: React.FC<{ name: string, category: Category }> = ({ name, category }) => {
+const CategoryComponent: React.FC<{ name: string, category: Category, count: number }> = ({ name, category, count = 0 }) => {
+    var colour: string
+    if (count % 2 == 0) {
+        colour = "border-background"
+    } else {
+        colour = "border-accent"
+    }
+
     return (
         <Disclosure>
             {({ open }) => (
-                <>
-                    <Disclosure.Button className="p-2 bg-slate-400 w-full inline-flex justify-left items-center text-black">
+                <div className="pb-4">
+                <div className={`border-l-4 ${colour}`}>
+                    <Disclosure.Button className="p-2 bg-slate-400 w-full inline-flex justify-left items-center text-black m-100">
                         <svg className={`mr-2 h-5 w-5 ${open ? '' : '-rotate-90'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                         {name}
                     </Disclosure.Button>
-                    <Disclosure.Panel className="pl-4 text-gray-500 bg-slate-300">
+                    <Disclosure.Panel className="pl-4 text-black bg-slate-400">
                         <>
                             {
                                 /* show child categories */
@@ -155,7 +163,7 @@ const CategoryComponent: React.FC<{ name: string, category: Category }> = ({ nam
                                     const child = category.children[name];
 
                                     return (
-                                        <CategoryComponent key={child.key} name={name} category={child} />
+                                        <CategoryComponent key={child.key} name={name} category={child} count={count+1} />
                                     )
                                 })
                             }
@@ -199,7 +207,8 @@ const CategoryComponent: React.FC<{ name: string, category: Category }> = ({ nam
                             </div>
                         </>
                     </Disclosure.Panel>
-                </>
+                </div>
+            </div>
             )}
         </Disclosure>
     );
