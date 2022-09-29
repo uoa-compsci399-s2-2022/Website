@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import React, { Dispatch, SetStateAction, useEffect } from "react";
 import Button from "./button";
 import { LoadingSpinner } from './loading';
-import MarkdownField from './markdownfield';
+import MarkdownField from './markdown_field';
 import { Modal } from './modal';
 
 const CreateQuizMutation = gql`
@@ -141,7 +141,7 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({ isOpen, setIsOpen, edi
 
 
                             <div className="flex gap-2 items-center">
-                                <Button solid={true} action={() => { }} disabled={loading || !isValid}>
+                                <Button theme='solid' action={() => { }} disabled={loading || !isValid}>
                                     {editor ? 'Save' : 'Create'}
                                 </Button>
                                 <Button action={() => setIsOpen(false)} preventDefault={true}>Cancel</Button>

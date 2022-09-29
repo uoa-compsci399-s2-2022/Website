@@ -18,10 +18,12 @@ export const Class = {
 
         extend type Mutation {
             createClass(textid: String!, name: String!, students: [String!]): Class
-            updateClass(id: String!, name: String): Class
+            updateClass(id: String!, name: String, users: [String!]): Class
             deleteClass(id: String!): Class
+            """
             addUsersToClass(id: String!, users: [String!]): Class
             removeUsersFromClass(id: String!, users: [String!]): Class
+            """
             addStudentsToClass(id: String!, students: [String!]): Class
             removeStudentsFromClass(id: String!, students: [String!]): Class
             addGroupToClass(id: String!, group: GroupInput): Class
@@ -116,15 +118,57 @@ export const Class = {
             });
         },
 
-        updateClass: (_parent: any, args: { id: string, name?: string }, context: Context) => {
+        updateClass: async (_parent: any, args: { id: string, name?: string, users?: string[] }, context: Context) => {
             ProtectQuery(context, false);
 
-            return context.prisma.class.update({
+            const existing = await context.prisma.class.findFirst({
+                where: {
+                    id: args.id,
+                },
+                include: {
+                    users: true,
+                }
+            });
+            if (existing === null) {
+                throw new Error(`Class with id ${args.id} not found.`);
+            }
+
+            const toConnect: string[] = [];
+            const toRemove: string[] = [];
+
+            const existingUsers = existing.users.map(user => user.email);
+
+            if (args.users) {
+                for (const user of existing.users) {
+                    if (!(args.users.includes(user.email))) {
+                        toRemove.push(user.email);
+                    }
+                }
+                for (const email of args.users) {
+                    if (!(existingUsers.includes(email))) {
+                        toConnect.push(email);
+                    }
+                }
+            }
+
+            return await context.prisma.class.update({
                 where: {
                     id: args.id,
                 },
                 data: {
                     name: args.name,
+                    users: {
+                        connect: toConnect.map(email => {
+                            return {
+                                email,
+                            }
+                        }),
+                        disconnect: toRemove.map(email => {
+                            return {
+                                email,
+                            }
+                        }),
+                    }
                 },
                 include: {
                     users: true,
@@ -149,6 +193,7 @@ export const Class = {
             });
         },
 
+        /*
         addUsersToClass: (_parent: any, args: { id: string, users?: string[] }, context: Context) => {
             ProtectQuery(context, false);
 
@@ -158,9 +203,9 @@ export const Class = {
                 },
                 data: {
                     users: {
-                        connect: (args.users ?? []).map((id) => {
+                        connect: (args.users ?? []).map((email) => {
                             return {
-                                id
+                                email
                             }
                         })
                     }
@@ -182,9 +227,9 @@ export const Class = {
                 },
                 data: {
                     users: {
-                        deleteMany: (args.users ?? []).map((id) => {
+                        deleteMany: (args.users ?? []).map((email) => {
                             return {
-                                id
+                                email
                             }
                         })
                     }
@@ -195,7 +240,7 @@ export const Class = {
                     groups: true,
                 }
             })
-        },
+        },*/
 
         addStudentsToClass: (_parent: any, args: { id: string, students?: string[] }, context: Context) => {
             ProtectQuery(context, false);

@@ -4,7 +4,7 @@
  **/
 import React, { useState } from 'react';
 import { Session } from 'next-auth';
-import { ClassCreator } from '@/components/class_creator';
+import { ClassCreator } from '@/components/class/class_creator';
 import Card, { CardContainer } from '@/components/card';
 import ClassCard from '@/components/class_card';
 import { gql } from 'apollo-server-micro';

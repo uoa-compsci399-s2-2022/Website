@@ -26,7 +26,7 @@ const StudentLogin: React.FC<StudentLoginProps> = ({ csrfToken }) => {
                         ref={inputRef}
                     />
                 </label>
-                <Button solid={true} action={() => {
+                <Button theme='solid' action={() => {
                     const passcode = inputRef.current?.value;
                     console.log(passcode);
                     signIn('passcode', {

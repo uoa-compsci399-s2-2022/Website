@@ -58,12 +58,22 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (session?.user && !isStudent(session)) {
         const apolloClient = initializeApollo(context.req.cookies);
 
-        await apolloClient.query({
+        const result = await apolloClient.query({
             query: GetClassQuery,
             variables: {
                 textid
             }
         });
+
+        if (result.data.class === null) {
+            return {
+                props: {},
+                redirect: {
+                    permanent: false,
+                    destination: '/',
+                }
+            };
+        }
 
         return addApolloState(apolloClient, {
             props: {
@@ -86,7 +96,6 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
     const { loading, error, data, refetch } = useQuery(GetClassQuery, {
         variables: { textid }
     })
-    const [dataError, setError] = useState('');
 
     const _class = data.class as PrismaClass & {
         students: Student[],
@@ -170,15 +179,15 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
 
     return (
         <div className="">
-            <ClassCardContainer cols="grid-cols-2">
+            <ClassCardContainer cols="md:grid-cols-2">
 
-                <MainClassCard className={_class.name} />
+                <MainClassCard _class={_class} doRefetch={() => refetch()} />
                 <StatsCard />
 
             </ClassCardContainer>
-            <ClassCardContainer cols="grid-cols-3">
+            <ClassCardContainer cols="md:grid-cols-2 lg:grid-cols-3">
 
-                <StudentsCard students={_class.students} doRefetch={() => refetch()} />
+                <StudentsCard students={_class.students} id={_class.id} doRefetch={() => refetch()} />
                 <GroupsCard />
                 <QuizListCard />
 

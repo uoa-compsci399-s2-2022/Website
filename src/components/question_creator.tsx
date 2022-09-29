@@ -174,7 +174,7 @@ export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ isOpen, setIsO
                             </div>
 
                             <div className="flex gap-2 items-center">
-                                <Button solid={true} action={() => { }} disabled={loading || !isValid}>
+                                <Button theme='solid' action={() => { }} disabled={loading || !isValid}>
                                     Create
                                 </Button>
                                 <Button action={() => setIsOpen(false)} preventDefault={true}>Cancel</Button>

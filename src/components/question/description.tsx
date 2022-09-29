@@ -1,6 +1,6 @@
 import { moodleFixHtml } from '@/lib/util';
 import { Field, useField } from 'formik';
-import MarkdownField from '../markdownfield';
+import MarkdownField from '../markdown_field';
 
 interface DescriptionQuestionBuilderProps {
 

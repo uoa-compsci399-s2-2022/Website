@@ -3,8 +3,12 @@
  **/
 import React, { Component } from 'react'
 
+type Theme = 'solid' | 'grey' | 'danger' | 'passive';
+
+export type ButtonTheme = Theme;
+
 interface ButtonProps {
-    solid?: boolean,
+    theme?: Theme,
     disabled?: boolean,
     action: () => void,
     preventDefault?: boolean,
@@ -12,25 +16,33 @@ interface ButtonProps {
     type?: "button" | "submit" | "reset",
 }
 
-interface Colours {
-    [key: string]: {
-        enabled: string,
-        disabled: string,
-    }
-}
+type Colours = {
+    [key in Theme]: {
+        enabled: string;
+        disabled: string;
+    };
+};
 
 const colours: Colours = {
     solid: {
-        enabled: 'border-gray-300 bg-accent text-text-colour hover:bg-accent-2',
+        enabled: 'border-blue-600 bg-blue-700 text-text-colour hover:bg-blue-800',
         disabled: 'border-gray-300 bg-background text-text-colour',
     },
-    not_solid: {
-        enabled: 'border-gray-300 bg-background text-text-colour-700 hover:bg-gray-900',
+    grey: {
+        enabled: 'border-gray-300 bg-background text-text-colour-700 hover:bg-gray-500',
+        disabled: 'border-gray-300 bg-background text-text-colour',
+    },
+    danger: {
+        enabled: 'border-red-400 bg-red-500 text-white hover:bg-red-600',
+        disabled: 'border-gray-300 bg-background text-text-colour',
+    },
+    passive: {
+        enabled: 'bg-gray-800 text-white border-gray-600 hover:bg-gray-700',
         disabled: 'border-gray-300 bg-background text-text-colour',
     }
 }
 
-const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, preventDefault, type }) => {
+const Button: React.FC<ButtonProps> = ({ theme, disabled, children, action, preventDefault, type }) => {
 
     const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         action();
@@ -39,7 +51,7 @@ const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, prev
         }
     }
 
-    let colour = colours[solid ? 'solid' : 'not_solid'][disabled ? 'disabled' : 'enabled'];
+    let colour = colours[theme ?? 'grey'][disabled ? 'disabled' : 'enabled'];
 
     return <button
         type={type}

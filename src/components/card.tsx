@@ -19,14 +19,14 @@ interface CardProps {
 const Card: React.FC<CardProps> = ({ children, url, onClick, width }) => {
     return (
         <OptionalLink url={url}>
-            <a
+            <span
                 onClick={onClick}
-                className={`left-1 block p-8 border border-border shadow-xl rounded-xl ${width ?? ""} bg-primary${(onClick && ' cursor-pointer hover:bg-primary/[0.8]') ?? ''}`}
+                className={`left-1 block p-8 border border-border shadow-xl rounded-xl ${width ?? ""} bg-primary${((onClick || url) && ' cursor-pointer hover:bg-primary/[0.8]') ?? ''}`}
             >
                 <div className='left-1 my-4 text-gray-500'>
                     {children}
                 </div>
-            </a>
+            </span>
         </OptionalLink>
     );
 }

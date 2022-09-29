@@ -20,6 +20,7 @@ export const GetQuizQuery = gql`
                 timeLimit
                 quizQuestion {
                     id
+                    name
                 }
             }
         }
@@ -60,7 +61,7 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
                     </h1>
                     <span>
                         <Button
-                            solid={true}
+                            theme='solid'
                             action={() => setQuizEditorOpen(true)}
                         >
                             Edit
@@ -84,7 +85,7 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
                                 <p className="text-white text-md">Question {index + 1}</p>
                                 {
                                     question.quizQuestion ? (
-                                        <p>{JSON.stringify(question.quizQuestion)}</p>
+                                        <p>{question.quizQuestion.name}</p>
                                     ) : (
                                         <h1 className="text-white">No question assigned.</h1>
                                     )
