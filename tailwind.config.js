@@ -10,6 +10,7 @@ module.exports = {
         "background": "#393E46",
         "text-colour": "#EEEEEE",
         "accent": "#00ADB5",
+        "accent-2": "#005E63",
         "nav-text": "#a0a8bb",
         "border": "#535965"
       }
