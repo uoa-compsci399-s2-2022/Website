@@ -11,7 +11,7 @@ const Landing: React.FC = () => {
         <main>
             <div className=''>
                 <main className="">
-                    <p className="dark:text-white">
+                    <p className="text-white text-3xl p-6">
                         a website for testing your spatial skills
                     </p>
 
@@ -20,7 +20,7 @@ const Landing: React.FC = () => {
                     </div>
                 </main>
 
-                <footer className="">
+                <footer className="text-white text-xl p-6">
                     <a
                         href=""
                         target="_blank"

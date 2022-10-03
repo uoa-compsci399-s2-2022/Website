@@ -4,6 +4,7 @@ import Button from "../button";
 import { LoadingSpinner } from '../loading';
 import { gql, useMutation } from '@apollo/client';
 import { Modal } from '../modal';
+import { validateEmail, validateNonEmpty } from '@/lib/validation';
 
 const UpdateStudentMutation = gql`
     mutation($id: String!, $name: String, $passcode: String, $email: String) {
@@ -27,30 +28,6 @@ interface FormValues {
 
 export const StudentEditor: React.FC<StudentEditorProps> = ({ isOpen, setIsOpen, doRefetch, initialProps, id }) => {
     const [updateStudent] = useMutation(UpdateStudentMutation);
-
-    const validateNonEmpty = (field: string, value: string): string | undefined => {
-        let error;
-
-        if (!value) {
-            error = field + ' required';
-        } else if (value.length <= 0) {
-            error = field + ' cannot be empty';
-        }
-
-        return error;
-    }
-
-    const validateEmail = (email: string): string | undefined => {
-        let error;
-
-        // Regex from https://formik.org/docs/guides/validation#form-level-validation
-        // note that emails are not required
-        if (email && email.length > 0 && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
-            error = 'Invalid email address';
-        }
-
-        return error;
-    }
 
     return (
         <Modal

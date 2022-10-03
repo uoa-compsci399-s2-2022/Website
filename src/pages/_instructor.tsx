@@ -11,10 +11,6 @@ import { gql } from 'apollo-server-micro';
 import { useQuery } from '@apollo/client';
 import { Class, Group, Student, User } from '@prisma/client';
 
-interface InstructorProps {
-    session: Session,
-}
-
 export const GetClassesQuery = gql`
     query {
         classes {
@@ -42,7 +38,7 @@ export const GetClassesQuery = gql`
     }
 `;
 
-const Instructor: React.FC<InstructorProps> = ({ session }) => {
+const Instructor: React.FC = () => {
     const [classCreatorOpen, setClassCreatorOpen] = useState(false);
     const { loading, error, data, refetch } = useQuery(GetClassesQuery);
 

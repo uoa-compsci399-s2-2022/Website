@@ -41,7 +41,7 @@ export const typeDefs = gql`
     type Group {
         id: String!
         name: String
-        passcode: String!
+        passcode: String
         anonymous: Boolean
         students: [Student!]
         class: Class
@@ -81,8 +81,8 @@ export const typeDefs = gql`
         id: String!
         quiz: Quiz!
         assignedBy: User!
-        students: [Student!]!
-        groups: [Group!]!
+        student: Student
+        group: Group
         start: DateTime!
         end: DateTime!
         sessions: [QuizSession!]
@@ -93,7 +93,8 @@ export const typeDefs = gql`
         start: DateTime!
         finish: DateTime!
         data: JSON!
-        student: Student!
+        student: Student
+        group: Group
         quizAssignment: QuizAssignment!
     }
     
@@ -102,7 +103,7 @@ export const typeDefs = gql`
     """
     input GroupInput {
         name: String!
-        passcode: String!
+        passcode: String
         students: [String!]
         anonymous: Boolean
     }

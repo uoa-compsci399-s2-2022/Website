@@ -20,6 +20,7 @@ import { addApolloState, initializeApollo } from '@/lib/apollo';
 import Button from '@/components/button';
 import { QuestionCreator } from '@/components/question_creator';
 import { LoadingSpinner } from '@/components/loading';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
 const GetQuestionsQuery = gql`
     query {
@@ -171,9 +172,11 @@ const CategoryComponent: React.FC<CategoryComponentProps> = ({ name, category, c
                         <Disclosure.Button className="p-2 bg-slate-400 w-full inline-flex justify-left items-center text-black m-100 gap-2">
                             <input
                                 type="checkbox"
-                                defaultChecked={selected['category.' + category.key] ?? false}
+                                checked={selected['category.' + category.key] ?? false}
                                 onClick={(event) => {
                                     event.stopPropagation();
+                                }}
+                                onChange={() => {
                                     setSelected(all => {
                                         const result = { ...all };
                                         const state = !all['category.' + category.key] ?? true;
@@ -194,9 +197,8 @@ const CategoryComponent: React.FC<CategoryComponentProps> = ({ name, category, c
                                 }}
                             />
                             <span className="flex-grow text-left">{name}</span>
-                            <svg className={`mr-2 h-5 w-5 ${open ? '' : '-rotate-90'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
+                            {/* @ts-ignore */}
+                            <FontAwesomeIcon icon={faChevronDown} className={open ? '' : '-rotate-90'} />
                         </Disclosure.Button>
                         <Disclosure.Panel className="pl-4 text-black bg-slate-400">
                             <>
@@ -220,18 +222,18 @@ const CategoryComponent: React.FC<CategoryComponentProps> = ({ name, category, c
                                             >
                                                 <input
                                                     type="checkbox"
-                                                    onClick={() => {
+                                                    onChange={() => {
                                                         setSelected(all => {
                                                             const result = { ...all };
                                                             result[question.id] = !all[question.id] ?? true;
                                                             return result;
                                                         });
                                                     }}
-                                                    defaultChecked={selected[question.id] ?? false}
+                                                    checked={selected[question.id] ?? false}
                                                 />
-                                                <span className="flex-grow">{
-                                                    question.name
-                                                }</span>
+                                                <span className="flex-grow">
+                                                    {question.name}
+                                                </span>
                                                 <Link href={`/quiz/preview/${question.id}`} passHref>
                                                     <a target="_blank" rel="noopener noreferrer">
                                                         <FontAwesomeIcon
@@ -265,6 +267,10 @@ const QuizList: NextPage = ({ }) => {
     const { data: questionData, refetch, loading: questionsLoading } = useQuery(GetQuestionsQuery);
     const [createQuestion] = useMutation(CreateQuestionMutation);
     const [deleteQuestion] = useMutation(DeleteQuestionMutation);
+
+    useEffect(() => {
+        setSelected({});
+    }, [])
 
     const quizzes = quizData.quizzes as (Quiz & {
         user: User,
@@ -356,7 +362,6 @@ const QuizList: NextPage = ({ }) => {
                             <h1 className="text-white text-3xl flex-grow">
                                 your questions
                             </h1>
-                            <Button theme='solid' action={() => setQuestionCreatorOpen(true)}>New</Button>
                             <ImportQuestions onImport={(questions) => { uploadQuestions(questions) }} />
                         </div>
                         <div className="pt-2">
@@ -378,26 +383,29 @@ const QuizList: NextPage = ({ }) => {
                                 })
                             }
                         </div>
-                        {
-                            selectedCount > 0 &&
-                            <div className="flex gap-2 items-center">
-                                <Button
-                                    theme='solid'
-                                    action={() => { }}
-                                >
-                                    Export {selectedCount} selected
-                                </Button>
-                                <Button
-                                    theme='danger'
-                                    action={() => deleteSelected()}
-                                >
-                                    Delete {selectedCount} selected
-                                </Button>
-                                {deleteExport && <p className="text-white pb-4 flex gap-2 items-center">
-                                    <LoadingSpinner />
-                                </p>}
-                            </div>
-                        }
+                        <div className="flex gap-2 items-center">
+                            <Button theme='solid' action={() => setQuestionCreatorOpen(true)}>Create Question</Button>
+                            {
+                                selectedCount > 0 &&
+                                <>
+                                    <Button
+                                        theme='solid'
+                                        action={() => { }}
+                                    >
+                                        Export {selectedCount} selected
+                                    </Button>
+                                    <Button
+                                        theme='danger'
+                                        action={() => deleteSelected()}
+                                    >
+                                        Delete {selectedCount} selected
+                                    </Button>
+                                    {deleteExport && <p className="text-white pb-4 flex gap-2 items-center">
+                                        <LoadingSpinner />
+                                    </p>}
+                                </>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>

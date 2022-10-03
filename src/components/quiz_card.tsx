@@ -3,21 +3,20 @@
  **/
 import React, { Component, useState } from 'react'
 import { RadioGroup } from '@headlessui/react'
-import { Quiz, QuizAssignment, QuizQuestion, User } from '@prisma/client';
+import { Quiz, QuizAssignment, QuizQuestion } from '@prisma/client';
 import Card from './card';
 
 interface QuizCardProps {
     quiz: Quiz & {
-        user: User,
-        assignments: QuizAssignment[],
-        questions: (QuizQuestion | null)[]
+        assignments?: QuizAssignment[],
+        questions?: (QuizQuestion | null)[]
     };
     assignment?: QuizAssignment;
 }
 
 const QuizCard: React.FC<QuizCardProps> = ({ quiz, assignment }) => {
-    const assignments = quiz.assignments.length;
-    const questions = quiz.questions.length;
+    const assignments = quiz.assignments?.length;
+    const questions = quiz.questions?.length;
 
     return (
         <Card url={`/quiz/${quiz.id}/`}>
@@ -25,18 +24,18 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, assignment }) => {
 
             <p className="mt-2 text-sm sm:block">
                 {
-                    assignment && (
+                    assignment ? (
                         <>
-                            <span className='block'>Available: {assignment.start.toDateString()}</span>
-                            <span className='block'>Due: {assignment.end.toDateString()}</span>
+                            <span className='block'>Available: {new Date(assignment.start).toLocaleString()}</span>
+                            <span className='block'>Due: {new Date(assignment.end).toLocaleString()}</span>
+                        </>
+                    ) : (
+                        <>
+                            <span className='block'>{assignments} assignment{assignments !== 1 ? 's' : ''}</span>
+                            <span className='block'>{questions} question{questions !== 1 ? 's' : ''}</span>
                         </>
                     )
                 }
-            </p>
-
-            <p className='hidden mt-2 text-sm sm:block text-accent'>
-                <span className='block'>{assignments} assignment{assignments !== 1 ? 's' : ''}</span>
-                <span className='block'>{questions} question{questions !== 1 ? 's' : ''}</span>
             </p>
         </Card>
     )

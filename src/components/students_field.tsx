@@ -1,3 +1,4 @@
+import { validateEmail, validateNonEmpty } from '@/lib/validation';
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Field, FieldArray, useField } from "formik";
@@ -11,30 +12,6 @@ interface ClassStudentFieldProps {
 }
 
 const ClassStudentField: React.FC<ClassStudentFieldProps> = ({ index, remove }) => {
-    const validateNonEmpty = (field: string, value: string): string | undefined => {
-        let error;
-
-        if (!value) {
-            error = field + ' required';
-        } else if (value.length <= 0) {
-            error = field + ' cannot be empty';
-        }
-
-        return error;
-    }
-
-    const validateEmail = (email: string): string | undefined => {
-        let error;
-
-        // Regex from https://formik.org/docs/guides/validation#form-level-validation
-        // note that emails are not required
-        if (email && email.length > 0 && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
-            error = 'Invalid email address';
-        }
-
-        return error;
-    }
-
     return (
         <tr className="bg-background text-text-colour">
             <td className="border border-1 text-center px-2">{index + 1}</td>

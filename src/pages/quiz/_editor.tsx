@@ -82,10 +82,10 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
                     {
                         quiz.questions.map((question, index) => {
                             return (<div key={`question-${index}`}>
-                                <p className="text-white text-md">Question {index + 1}</p>
+                                <p className="text-white text-md font-bold">Question {index + 1}</p>
                                 {
                                     question.quizQuestion ? (
-                                        <p>{question.quizQuestion.name}</p>
+                                        <p className="text-white">{question.quizQuestion.name}</p>
                                     ) : (
                                         <h1 className="text-white">No question assigned.</h1>
                                     )

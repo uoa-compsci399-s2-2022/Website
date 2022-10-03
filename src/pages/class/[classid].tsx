@@ -42,6 +42,12 @@ const GetClassQuery = gql`
                 name
                 anonymous
                 passcode
+                students {
+                    id
+                    name
+                    email
+                    passcode
+                }
             }
         }
     }
@@ -99,7 +105,9 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
 
     const _class = data.class as PrismaClass & {
         students: Student[],
-        groups: Group[],
+        groups: (Group & {
+            students: Student[],
+        })[],
         users: User[],
     } | null;
 
@@ -188,7 +196,7 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
             <ClassCardContainer cols="md:grid-cols-2 lg:grid-cols-3">
 
                 <StudentsCard students={_class.students} id={_class.id} doRefetch={() => refetch()} />
-                <GroupsCard />
+                <GroupsCard _class={_class} doRefetch={() => refetch()} />
                 <QuizListCard />
 
             </ClassCardContainer>

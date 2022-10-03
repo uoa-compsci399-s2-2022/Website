@@ -37,7 +37,13 @@ const MainClassCard: React.FC<MainClassProps> = ({ _class, doRefetch }) => {
         <>
             <Card width="">
                 <h5 className="mt-4 text-xl font-bold text-text-colour">{_class.name}</h5>
-                <div className='grid grid-cols-3 py-4 gap-4'>
+                <p>
+                    <span className="block">Students</span>
+                    <span className="block">Groups</span>
+                    <span className="block">Instructors</span>
+                    <span className="block">Assigned Quizzes</span>
+                </p>
+                <div className='grid grid-cols-3 pt-4 gap-4'>
                     <Button action={() => {
                         setAssignerOpen(true);
                     }} theme='solid'>Assign Quiz</Button>

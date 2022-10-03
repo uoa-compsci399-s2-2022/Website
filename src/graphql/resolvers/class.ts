@@ -2,9 +2,9 @@ import { Context } from '@/pages/api/graphql';
 import { gql } from 'apollo-server-micro';
 import { ProtectQuery } from '../resolvers';
 
-interface GroupInput {
+export interface GroupInput {
     name: string,
-    passcode: string,
+    passcode?: string,
     students?: string[],
     anonymous?: boolean,
 }
@@ -51,7 +51,11 @@ export const Class = {
                 include: {
                     students: true,
                     users: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             });
         },
@@ -69,7 +73,11 @@ export const Class = {
                 include: {
                     students: true,
                     users: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             });
         },
@@ -113,7 +121,11 @@ export const Class = {
                 include: {
                     students: true,
                     users: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             });
         },
@@ -173,7 +185,11 @@ export const Class = {
                 include: {
                     users: true,
                     students: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             });
         },
@@ -188,7 +204,11 @@ export const Class = {
                 include: {
                     users: true,
                     students: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             });
         },
@@ -261,7 +281,11 @@ export const Class = {
                 include: {
                     users: true,
                     students: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             })
         },
@@ -275,7 +299,7 @@ export const Class = {
                 },
                 data: {
                     students: {
-                        deleteMany: (args.students ?? []).map((id) => {
+                        disconnect: (args.students ?? []).map((id) => {
                             return {
                                 id
                             }
@@ -285,7 +309,11 @@ export const Class = {
                 include: {
                     users: true,
                     students: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             })
         },
@@ -325,12 +353,16 @@ export const Class = {
                 include: {
                     users: true,
                     students: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             })
         },
 
-        removeGroupFromClass: (_parent: any, args: { id: string, group: string }, context: Context) => {
+        removeGroupFromClass: (_parent: any, args: { id: string, groupId: string }, context: Context) => {
             ProtectQuery(context, false);
 
             return context.prisma.class.update({
@@ -340,14 +372,18 @@ export const Class = {
                 data: {
                     groups: {
                         delete: {
-                            id: args.group,
+                            id: args.groupId,
                         }
                     }
                 },
                 include: {
                     users: true,
                     students: true,
-                    groups: true,
+                    groups: {
+                        include: {
+                            students: true,
+                        }
+                    },
                 }
             })
         },

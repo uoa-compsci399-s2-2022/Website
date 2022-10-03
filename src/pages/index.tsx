@@ -12,31 +12,45 @@ import { addApolloState, initializeApollo } from '@/lib/apollo';
 import { authOptions } from './api/auth/[...nextauth]';
 import Instructor, { GetClassesQuery } from './_instructor';
 import Landing from './_landing';
-import StudentPage from './_student';
+import StudentPage, { GetUpcomingQuizzesQuery } from './_student';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await unstable_getServerSession(context.req, context.res, authOptions);
 
-  if (session && session.user && !session.user.student) {
-    const apolloClient = initializeApollo(context.req.cookies)
-
-    await apolloClient.query({
-      query: GetClassesQuery,
-    })
+  if (session && session.user) {
+    const apolloClient = initializeApollo(context.req.cookies);
+    if (!session.user.student) {
+      await apolloClient.query({
+        query: GetClassesQuery,
+      })
+    } else {
+      await apolloClient.query({
+        query: GetUpcomingQuizzesQuery,
+      })
+    }
 
     return addApolloState(apolloClient, {
-      props: {},
+      props: {
+        loggedIn: true,
+        isStudent: session.user.student ?? false,
+      },
     });
   } else {
-    console.log('no session');
-    return { props: {} }
+    return {
+      props: {
+        loggedIn: false,
+        isStudent: false,
+      }
+    }
   }
 };
 
-const Index: NextPage = ({ }) => {
-  const { data: session, status } = useSession()
-  const loading = status === "loading";
+interface IndexProps {
+  loggedIn: boolean,
+  isStudent: boolean
+}
 
+const Index: NextPage<IndexProps> = ({ loggedIn, isStudent }) => {
   return (
     <>
       <Head>
@@ -46,18 +60,14 @@ const Index: NextPage = ({ }) => {
       </Head>
 
       {
-        loading ? (
-          <p>loading... {/* TODO: draw some spinner element or something */}</p>
-        ) : (
-          session ? (
-            isStudent(session) ? (
-              <StudentPage session={session} />
-            ) : (
-              <Instructor session={session} />
-            )
+        loggedIn ? (
+          isStudent ? (
+            <StudentPage />
           ) : (
-            <Landing />
+            <Instructor />
           )
+        ) : (
+          <Landing />
         )
       }
     </>

@@ -5,6 +5,7 @@ declare module "next-auth" {
     interface Session {
         user?: {
             student?: boolean,
+            group?: boolean,
             uid: string,
         } & DefaultSession["user"]
     }

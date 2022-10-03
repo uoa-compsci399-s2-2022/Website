@@ -86,7 +86,7 @@ model Student {
 model Group {
   id        String           @id @default(cuid())
   name      String
-  passcode  String           @unique
+  passcode  String?          @unique
   anonymous Boolean
   students  Student[]
   class     Class            @relation(fields: [classId], references: [id])
@@ -137,8 +137,10 @@ model QuizAssignment {
   quizId     String
   assignedBy User          @relation(fields: [userId], references: [id])
   userId     String
-  students   Student[]
-  groups     Group[]
+  student    Student?      @relation(fields: [studentId], references: [id])
+  studentId  String?
+  group      Group?        @relation(fields: [groupId], references: [id])
+  groupId    String?
   sessions   QuizSession[]
 }
 
@@ -147,10 +149,10 @@ model QuizSession {
   start            DateTime       @default(now())
   finish           DateTime
   data             Json
-  student          Student        @relation(fields: [studentId], references: [id])
-  studentId        String
+  student          Student?       @relation(fields: [studentId], references: [id])
+  studentId        String?
   quizAssignment   QuizAssignment @relation(fields: [quizAssignmentId], references: [id])
   quizAssignmentId String
-  Group            Group?         @relation(fields: [groupId], references: [id])
+  group            Group?         @relation(fields: [groupId], references: [id])
   groupId          String?
 }

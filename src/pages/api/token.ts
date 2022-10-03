@@ -8,7 +8,9 @@ import prisma from '@/lib/prisma';
 
 type Data = {
     error?: string,
-} | any;
+    type?: string,
+    user?: any,
+};
 
 interface Body {
     passcode: string;
@@ -34,7 +36,19 @@ export default async function handler(
     });
 
     if (users.length === 0) {
-        res.status(404).json({ error: "User not found." });
+        const groups = await prisma.group.findMany({
+            where: { passcode },
+        });
+
+        if (groups.length === 0) {
+            res.status(404).json({ error: "User or group not found." });
+        } else if (groups.length > 1) {
+            res.status(400).json({ error: "Invalid passcode." });
+        } else {
+            const [group] = groups;
+            res.status(200).json({ user: group, type: 'group' });
+        }
+        return;
     }
 
     if (users.length > 1) {
@@ -43,6 +57,5 @@ export default async function handler(
 
     const [user] = users;
 
-    console.log(user);
-    res.status(200).json(user);
+    res.status(200).json({ user, type: 'student' });
 }

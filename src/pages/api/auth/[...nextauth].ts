@@ -38,13 +38,19 @@ export const authOptions: NextAuthOptions = {
                     },
                     body: JSON.stringify({ passcode: credentials.passcode }),
                 });
-                const user = await res.json();
+                const response = await res.json();
 
-                if (!res.ok || 'error' in Object.keys(user)) {
+                if (!res.ok || 'error' in Object.keys(response)) {
                     return null;
                 }
 
-                return { ...user, student: true };
+                const user = response['user'];
+                const type = response['type'];
+
+                const result = { ...user };
+                result[type] = true;
+
+                return result;
             }
         }),
         /* https://next-auth.js.org/providers/github */
@@ -69,6 +75,10 @@ export const authOptions: NextAuthOptions = {
                 if ('student' in user) {
                     response.student = true;
                 }
+                if ('group' in user) {
+                    response.group = true;
+                    response.student = true;
+                }
             }
             return response;
         },
@@ -78,6 +88,10 @@ export const authOptions: NextAuthOptions = {
                 response.user.uid = token.uid;
             }
             if (response.user && token && 'student' in token) {
+                response.user.student = true;
+            }
+            if (response.user && token && 'group' in token) {
+                response.user.group = true;
                 response.user.student = true;
             }
             return response;

@@ -8,9 +8,6 @@ export const Quiz = {
             quiz(id: String!): Quiz
             quizzes: [Quiz!]!
             quizSessions: [QuizSession!]!
-            
-            upcomingQuizzes: [QuizAssignment!]!
-            previousQuizzes: [QuizAssignment!]!
         }
 
         extend type Mutation {
@@ -83,30 +80,6 @@ export const Quiz = {
                 },
             });
         },
-
-        upcomingQuizzes: (_parent: any, _arg: any, context: Context) => {
-            ProtectQuery(context, true);
-
-            return context.prisma.quizAssignment.findMany({
-                where: {
-                    end: {
-                        gte: new Date(),
-                    }
-                }
-            });
-        },
-
-        previousQuizzes: (_parent: any, _arg: any, context: Context) => {
-            ProtectQuery(context, true);
-
-            return context.prisma.quizAssignment.findMany({
-                where: {
-                    end: {
-                        lte: new Date(),
-                    }
-                }
-            });
-        }
     },
     mutations: {
 

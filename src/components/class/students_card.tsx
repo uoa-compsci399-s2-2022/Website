@@ -14,9 +14,9 @@ interface StudentProps {
     doRefetch: () => void,
 }
 
-const DeleteStudentMutation = gql`
-    mutation($id: String!) {
-        deleteStudent(id: $id) {
+const RemoveStudentsFromClassMutation = gql`
+    mutation($id: String!, $students: [String!]) {
+        removeStudentsFromClass(id: $id, students: $students) {
             id
         }
     }
@@ -25,13 +25,14 @@ const DeleteStudentMutation = gql`
 const StudentsCard: React.FC<StudentProps> = ({ students, id, doRefetch }) => {
     const [studentCreatorOpen, setStudentCreatorOpen] = useState(false);
     const [studentEditorState, setStudentEditorState] = useState<Student | undefined>(undefined);
-    const [deleteStudent] = useMutation(DeleteStudentMutation);
+    const [removeStudentsFromClass] = useMutation(RemoveStudentsFromClassMutation);
 
-    const doDeleteStudent = async (id: string) => {
+    const doDeleteStudent = async (studentId: string) => {
         try {
-            await deleteStudent({
+            await removeStudentsFromClass({
                 variables: {
                     id,
+                    students: [studentId],
                 }
             });
 
@@ -44,9 +45,9 @@ const StudentsCard: React.FC<StudentProps> = ({ students, id, doRefetch }) => {
     return (
         <>
             <Card>
-                <h5 className="mt-4 text-xl font-bold text-text-colour">Students</h5>
+                <h5 className="mt-4 text-xl font-bold text-text-colour">Manage Students</h5>
                 <div className='p-4 overflow-y-auto max-h-96'>
-                    <ul className="max-w-md divide-y divide-gray-200 dark:divide-gray-700">
+                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                         <li className="pb-3 sm:pb-4 flex flex-col gap-2">
                             {
                                 students.map((student) => {

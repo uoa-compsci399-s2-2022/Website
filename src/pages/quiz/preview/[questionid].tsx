@@ -19,6 +19,7 @@ const GetQuestionQuery = gql`
         question(id: $id) {
             id
             type
+            name
             category
             content
             attribution

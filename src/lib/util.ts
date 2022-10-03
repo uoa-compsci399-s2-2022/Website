@@ -234,6 +234,8 @@ export const moodleFixHtml = (html: string, image: any): string => {
                 const matchingImage = matchingImages[0];
                 image.src = 'data:image/jpeg;base64,' + matchingImage['#text'];
             }
+        } else if (path.indexOf('googleusercontent')) {
+            image.referrerPolicy = 'no-referrer'
         }
     }
 

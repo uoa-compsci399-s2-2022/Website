@@ -1,3 +1,4 @@
+import { validateEmail } from '@/lib/validation';
 import { gql, useMutation } from '@apollo/client';
 import { faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -18,18 +19,6 @@ const UpdateClassMutation = gql`
 
 const InstructorsField: React.FC = () => {
     const [field, meta, helper] = useField<string[]>('instructors');
-
-    const validateEmail = (email: string): string | undefined => {
-        let error;
-
-        // Regex from https://formik.org/docs/guides/validation#form-level-validation
-        // note that emails are not required
-        if (email && email.length > 0 && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)) {
-            error = 'Invalid email address';
-        }
-
-        return error;
-    }
 
     let error = '';
     // Note: ugly cast, as our errors come as an array of objects
