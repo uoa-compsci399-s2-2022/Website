@@ -4,7 +4,7 @@ import Button from "../button";
 import { LoadingSpinner } from '../loading';
 import { gql, useLazyQuery, useMutation } from '@apollo/client';
 import { Modal } from '../modal';
-import { ClassStudentsField } from "../students_field";
+import { ClassStudentsField } from "./students_field";
 
 const FindOrCreateStudentMutation = gql`
     mutation($name: String!, $passcode: String!, $email: String) {

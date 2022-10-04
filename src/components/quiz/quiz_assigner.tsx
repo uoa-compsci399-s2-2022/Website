@@ -1,15 +1,15 @@
 import { Field, Form, Formik, useField } from "formik";
 import React, { Dispatch, SetStateAction, useEffect } from "react";
-import Button from "./button";
-import { LoadingSpinner } from './loading';
+import Button from "../button";
+import { LoadingSpinner } from '../loading';
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { Modal } from './modal';
+import { Modal } from '../modal';
 import { GetQuizzesQuery } from '@/pages/quiz/list';
 import { Class, Student, Group, Quiz } from "@prisma/client";
-import { DatetimeField } from './datetime_field';
-import { Tabs } from './tabs';
-import { Selector } from './selector';
-import { ListField } from './list_field';
+import { DatetimeField } from '../datetime_field';
+import { Tabs } from '../tabs';
+import { Selector } from '../selector';
+import { ListField } from '../list_field';
 
 const AssignQuizMutation = gql`
     mutation($quizId: String!, $student: String, $group: String, $start: DateTime!, $end: DateTime!) {
@@ -88,7 +88,7 @@ const AssignToField: React.FC<AssignToFieldProps> = ({ _class }) => {
                             name="groups"
                             values={_class.groups}
                             _key={(group: Group) => `group-${group.id}`}
-                            display={(group?: Group) => group ? `${group.name} (${group.passcode})` : ''}
+                            display={(group?: Group) => group ? `${group.name}` + (group.anonymous ? ` (${group.passcode})` : '') : ''}
                             filter={(group: Group, search: string) => {
                                 const s = search.toLowerCase();
                                 return (group.name.toLowerCase().indexOf(s) >= 0) ||

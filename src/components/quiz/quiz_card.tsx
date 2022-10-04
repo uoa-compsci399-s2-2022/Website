@@ -4,7 +4,7 @@
 import React, { Component, useState } from 'react'
 import { RadioGroup } from '@headlessui/react'
 import { Quiz, QuizAssignment, QuizQuestion } from '@prisma/client';
-import Card from './card';
+import Card from '../card';
 
 interface QuizCardProps {
     quiz: Quiz & {

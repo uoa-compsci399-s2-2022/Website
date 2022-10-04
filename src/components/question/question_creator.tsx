@@ -5,11 +5,11 @@ import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { Field, Form, Formik, useField } from "formik";
 import { useRouter } from "next/router";
 import React, { Dispatch, Fragment, ReactElement, SetStateAction } from "react";
-import Button from "./button";
-import { LoadingSpinner } from './loading';
-import { Modal } from './modal';
-import { DescriptionQuestionBuilder } from './question/description';
-import { MultiChoiceQuestionBuilder } from './question/multichoice';
+import Button from "../button";
+import { LoadingSpinner } from '../loading';
+import { Modal } from '../modal';
+import { DescriptionQuestionBuilder } from './description';
+import { MultiChoiceQuestionBuilder } from './multichoice';
 
 const TypeNames: Record<QuestionType, string> = {
     'description': 'Description',

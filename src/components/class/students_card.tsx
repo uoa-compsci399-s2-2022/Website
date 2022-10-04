@@ -1,12 +1,12 @@
 import { gql, useMutation } from '@apollo/client';
 import { faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Class, Student, User } from '@prisma/client';
+import { Student } from '@prisma/client';
 import { useState } from 'react';
 import Button from '../button';
 import Card from '../card';
-import { StudentCreator } from './student_creator';
-import { StudentEditor } from './student_editor';
+import { StudentCreator } from '../students/student_creator';
+import { StudentEditor } from '../students/student_editor';
 
 interface StudentProps {
     students: Student[],

@@ -5,10 +5,10 @@ import { Quiz } from '@prisma/client';
 import { Field, FieldArray, Form, Formik, useField, useFormik } from "formik";
 import { useRouter } from "next/router";
 import React, { Dispatch, SetStateAction, useEffect } from "react";
-import Button from "./button";
-import { LoadingSpinner } from './loading';
-import MarkdownField from './markdown_field';
-import { Modal } from './modal';
+import Button from "../button";
+import { LoadingSpinner } from '../loading';
+import MarkdownField from '../markdown_field';
+import { Modal } from '../modal';
 
 const CreateQuizMutation = gql`
     mutation($name: String!, $description: String!, $questions: Int!, $timeLimit: Int!) {

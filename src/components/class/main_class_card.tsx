@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Button from '../button';
 import Card from '../card';
 import { Confirmation } from '../confirmation';
-import { QuizAssigner } from '../quiz_assigner';
+import { QuizAssigner } from '../quiz/quiz_assigner';
 import { ClassEditor } from './class_editor';
 
 interface MainClassProps {

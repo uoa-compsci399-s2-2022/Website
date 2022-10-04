@@ -19,11 +19,19 @@ export const Quiz = {
             ): Quiz
 
             updateQuiz(
-                id: String!,
                 name: String,
                 description: String,
                 timeLimit: Int
             ): Quiz
+
+            updateQuizQuestion(
+                linkId: String!,
+                timeLimit: Int,
+                questionId: String,
+            ): QuizQuestionLink
+
+            addQuizQuestion(id: String!): Quiz
+            removeQuizQuestion(id: String!, linkId: String!): Quiz
         }
     `,
     queries: {
@@ -146,6 +154,84 @@ export const Quiz = {
                     },
                 }
             })
-        }
+        },
+
+        updateQuizQuestion: (_parent: any, args: { linkId: string, questionId?: string, timeLimit?: number }, context: Context) => {
+            ProtectQuery(context, false);
+
+            return context.prisma.quizQuestionLink.update({
+                where: {
+                    id: args.linkId,
+                },
+                data: {
+                    quizQuestionId: args.questionId,
+                    timeLimit: args.timeLimit,
+                },
+                include: {
+                    quiz: true,
+                    quizQuestion: true,
+                }
+            })
+        },
+
+        addQuizQuestion: (_parent: any, args: { id: string }, context: Context) => {
+            ProtectQuery(context, false);
+
+            return context.prisma.quiz.update({
+                where: {
+                    id: args.id,
+                },
+                data: {
+                    questions: {
+                        create: {
+                            timeLimit: 0,
+                        }
+                    }
+                },
+                include: {
+                    assignments: {
+                        include: {
+                            sessions: true,
+                            students: true,
+                        }
+                    },
+                    questions: {
+                        include: {
+                            quizQuestion: true,
+                        }
+                    },
+                }
+            })
+        },
+
+        removeQuizQuestion: (_parent: any, args: { id: string, linkId: string }, context: Context) => {
+            ProtectQuery(context, false);
+
+            return context.prisma.quiz.update({
+                where: {
+                    id: args.id,
+                },
+                data: {
+                    questions: {
+                        delete: {
+                            id: args.linkId,
+                        }
+                    }
+                },
+                include: {
+                    assignments: {
+                        include: {
+                            sessions: true,
+                            students: true,
+                        }
+                    },
+                    questions: {
+                        include: {
+                            quizQuestion: true,
+                        }
+                    },
+                }
+            })
+        },
     }
 }

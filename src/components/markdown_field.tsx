@@ -15,7 +15,7 @@ const MarkdownField: React.FC<MarkdownFieldProps> = ({ id, name }) => {
         <div className="relative">
             {
                 state ?
-                    <div className="prose outline outline-1 rounded w-full p-2">
+                    <div className="prose prose-invert outline outline-1 rounded w-full p-2">
                         <ReactMarkdown >
                             {meta.value}
                         </ReactMarkdown>

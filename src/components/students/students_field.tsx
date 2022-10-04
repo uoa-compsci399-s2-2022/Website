@@ -2,7 +2,7 @@ import { validateEmail, validateNonEmpty } from '@/lib/validation';
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Field, FieldArray, useField } from "formik";
-import Button from "./button";
+import Button from "../button";
 import ImportStudents from "./student_import";
 
 

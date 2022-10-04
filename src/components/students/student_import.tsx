@@ -6,7 +6,7 @@ import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Popover, Transition } from '@headlessui/react';
 import React, { FormEvent, Fragment, useRef } from 'react';
-import Button from './button';
+import Button from '../button';
 
 interface ImportProps {
     onImport: (students: ImportedStudent[]) => void,

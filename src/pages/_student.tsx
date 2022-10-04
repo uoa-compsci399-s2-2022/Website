@@ -9,7 +9,7 @@ import React from 'react';
 import { gql, useQuery } from '@apollo/client';
 import { Quiz, QuizAssignment, User } from '@prisma/client';
 import { CardContainer } from '@/components/card';
-import QuizCard from '@/components/quiz_card';
+import QuizCard from '@/components/quiz/quiz_card';
 
 export const GetUpcomingQuizzesQuery = gql`
     query {

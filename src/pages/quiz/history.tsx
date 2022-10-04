@@ -2,7 +2,7 @@
  * The 'QuizHistory' route should show students every quiz they have completed.
  **/
 import { CardContainer } from '@/components/card';
-import QuizCard from '@/components/quiz_card';
+import QuizCard from '@/components/quiz/quiz_card';
 import { initializeApollo, addApolloState } from '@/lib/apollo';
 import { gql, useQuery } from '@apollo/client';
 import { Quiz, QuizAssignment, User } from '@prisma/client';

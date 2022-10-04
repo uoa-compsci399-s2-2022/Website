@@ -2,27 +2,23 @@
  * The 'QuizList' route should show instructors every quiz they have access to.
  **/
 import { GetServerSideProps, NextPage } from 'next'
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { unstable_getServerSession } from 'next-auth';
 import { Quiz, QuizAssignment, QuizQuestion, User } from '@prisma/client';
 import { gql, useMutation, useQuery } from '@apollo/client';
-import { Disclosure } from '@headlessui/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faEye, faTrashCan } from '@fortawesome/free-regular-svg-icons';
-import Link from 'next/link';
 import Card, { CardContainer } from '@/components/card';
-import QuizCard from '@/components/quiz_card';
-import { QuizCreator } from '@/components/quiz_creator';
-import ImportQuestions from '@/components/question_import';
+import QuizCard from '@/components/quiz/quiz_card';
+import { QuizCreator } from '@/components/quiz/quiz_creator';
+import ImportQuestions from '@/components/question/question_import';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { isStudent } from '@/lib/util';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
 import Button from '@/components/button';
-import { QuestionCreator } from '@/components/question_creator';
+import { QuestionCreator } from '@/components/question/question_creator';
 import { LoadingSpinner } from '@/components/loading';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { QuestionView } from '@/components/question/question_view';
 
-const GetQuestionsQuery = gql`
+export const GetQuestionsQuery = gql`
     query {
         questions {
             id
@@ -109,159 +105,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
 };
 
-interface Category {
-    key: string,
-    questions: QuizQuestion[],
-    children: Record<string, Category>,
-}
 
-const sortQuestionsIntoCategories = (questions: QuizQuestion[]): Record<string, Category> => {
-    const categories: Record<string, Category> = {}
-    for (const question of questions) {
-        let category: Category | undefined = undefined;
-
-        const categoryDirectory = question.category.split('/');
-        for (const categoryName of categoryDirectory) {
-            let parent: Record<string, Category> = categories;
-            if (category !== undefined) {
-                parent = category.children;
-            }
-            if (categoryName in parent) {
-                category = parent[categoryName];
-            } else {
-                parent[categoryName] = {
-                    key: ((category && category.key + '.') ?? '') + categoryName,
-                    questions: [],
-                    children: {},
-                }
-                category = parent[categoryName];
-            }
-        }
-
-        if (!category) {
-            console.error('failed to find category', question.category);
-        } else {
-            category.questions.push(question);
-        }
-
-    }
-    return categories;
-};
-
-interface CategoryComponentProps {
-    name: string,
-    category: Category,
-    count?: number,
-    selected: Record<string, boolean>,
-    setSelected: Dispatch<SetStateAction<Record<string, boolean>>>,
-};
-
-const CategoryComponent: React.FC<CategoryComponentProps> = ({ name, category, count = 0, selected, setSelected }) => {
-    var colour: string
-    if (count % 2 == 0) {
-        colour = "border-background"
-    } else {
-        colour = "border-accent"
-    }
-
-    return (
-        <Disclosure>
-            {({ open }) => (
-                <div className="pb-4">
-                    <div className={`border-l-4 ${colour}`}>
-                        <Disclosure.Button className="p-2 bg-slate-400 w-full inline-flex justify-left items-center text-black m-100 gap-2">
-                            <input
-                                type="checkbox"
-                                checked={selected['category.' + category.key] ?? false}
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                }}
-                                onChange={() => {
-                                    setSelected(all => {
-                                        const result = { ...all };
-                                        const state = !all['category.' + category.key] ?? true;
-                                        result['category.' + category.key] = state;
-                                        const toVisit: Category[] = [category];
-                                        while (toVisit.length > 0) {
-                                            const category = toVisit.shift();
-                                            for (const q of category.questions) {
-                                                result[q.id] = state;
-                                            }
-                                            for (const child of Object.values(category.children)) {
-                                                result['category.' + child.key] = state;
-                                                toVisit.push(child);
-                                            }
-                                        }
-                                        return result;
-                                    });
-                                }}
-                            />
-                            <span className="flex-grow text-left">{name}</span>
-                            {/* @ts-ignore */}
-                            <FontAwesomeIcon icon={faChevronDown} className={open ? '' : '-rotate-90'} />
-                        </Disclosure.Button>
-                        <Disclosure.Panel className="pl-4 text-black bg-slate-400">
-                            <>
-                                {
-                                    /* show child categories */
-                                    Object.keys(category.children).map((name) => {
-                                        const child = category.children[name];
-
-                                        return (
-                                            <CategoryComponent key={child.key} name={name} category={child} count={count + 1} selected={selected} setSelected={setSelected} />
-                                        )
-                                    })
-                                }
-                                <div className="overflow-y-scroll max-h-80">
-                                    {
-                                        /* show questions in category */
-                                        category.questions.map((question) => (
-                                            <p
-                                                key={`${category.key}.${question.id}`}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    onChange={() => {
-                                                        setSelected(all => {
-                                                            const result = { ...all };
-                                                            result[question.id] = !all[question.id] ?? true;
-                                                            return result;
-                                                        });
-                                                    }}
-                                                    checked={selected[question.id] ?? false}
-                                                />
-                                                <span className="flex-grow">
-                                                    {question.name}
-                                                </span>
-                                                <Link href={`/quiz/preview/${question.id}`} passHref>
-                                                    <a target="_blank" rel="noopener noreferrer">
-                                                        <FontAwesomeIcon
-                                                            className="mr-4 cursor-pointer"
-                                                            icon={faEye}
-                                                            title="View/Edit"
-                                                        />
-                                                    </a>
-                                                </Link>
-                                            </p>
-                                        ))
-                                    }
-                                </div>
-                            </>
-                        </Disclosure.Panel>
-                    </div>
-                </div>
-            )}
-        </Disclosure>
-    );
-}
 
 const QuizList: NextPage = ({ }) => {
     const [quizCreatorOpen, setQuizCreatorOpen] = useState(false);
     const [questionCreatorOpen, setQuestionCreatorOpen] = useState(false);
-    const [uploading, setUploading] = useState(false);
+    const [loadState, setLoadState] = useState<string | undefined>(undefined);
     const [selected, setSelected] = useState<Record<string, boolean>>({});
-    const [deleteExport, setDeleteExport] = useState(false);
+    const [questionSearch, setQuestionSearch] = useState('');
 
     const { data: quizData } = useQuery(GetQuizzesQuery);
     const { data: questionData, refetch, loading: questionsLoading } = useQuery(GetQuestionsQuery);
@@ -282,10 +133,8 @@ const QuizList: NextPage = ({ }) => {
         user: User,
     })[];
 
-    const categories = questionsLoading ? {} : sortQuestionsIntoCategories(questions);
-
     const uploadQuestions = async (questions: QuizQuestionProps[]) => {
-        setUploading(true);
+        setLoadState('Uploading');
 
         for (const question of questions) {
             try {
@@ -296,12 +145,12 @@ const QuizList: NextPage = ({ }) => {
                 });
             } catch (error) {
                 alert(error.toString());
-                setUploading(false);
+                setLoadState(undefined);
             }
         }
 
         await refetch();
-        setUploading(false);
+        setLoadState(undefined);
     }
 
     const deleteSelected = async () => {
@@ -311,7 +160,7 @@ const QuizList: NextPage = ({ }) => {
         console.log(selectedQuestions);
 
         for (const [id,] of selectedQuestions) {
-            setDeleteExport(true);
+            setLoadState('Deleting');
             try {
                 await deleteQuestion({
                     variables: {
@@ -320,11 +169,11 @@ const QuizList: NextPage = ({ }) => {
                 });
             } catch (error) {
                 alert(`Failed to delete question ${id}: ${error}`);
-                setDeleteExport(false);
+                setLoadState(undefined);
                 return;
             }
             await refetch();
-            setDeleteExport(false);
+            setLoadState(undefined);
             setSelected({});
         }
     };
@@ -362,27 +211,37 @@ const QuizList: NextPage = ({ }) => {
                             <h1 className="text-white text-3xl flex-grow">
                                 your questions
                             </h1>
+                            <input
+                                type="text"
+                                placeholder="Search"
+                                className="rounded px-2"
+                                onChange={(event) => {
+                                    setQuestionSearch(event.target.value);
+                                }}
+                            />
                             <ImportQuestions onImport={(questions) => { uploadQuestions(questions) }} />
                         </div>
                         <div className="pt-2">
                             {
-                                !questionsLoading && Object.keys(categories).length === 0 && <p className="text-white pb-4">{uploading ? 'Uploading...' : 'You have no questions.'}</p>
+                                !questionsLoading && !loadState && questions.length === 0 &&
+                                <p className="text-white pb-4">{'You have no questions.'}</p>
                             }
                             {
                                 questionsLoading && <p className="text-white pb-4 flex gap-2 items-center">
                                     <LoadingSpinner /> Loading questions
                                 </p>
                             }
-                            {
-                                Object.keys(categories).map((name) => {
-                                    const child = categories[name];
-
-                                    return (
-                                        <CategoryComponent key={child.key} name={name} category={child} selected={selected} setSelected={setSelected} />
-                                    )
-                                })
-                            }
                         </div>
+                        {
+                            !questionsLoading && questions.length > 0 &&
+                            <QuestionView
+                                questions={questions}
+                                selectMultiple={true}
+                                query={questionSearch}
+                                selected={selected}
+                                setSelected={setSelected}
+                            />
+                        }
                         <div className="flex gap-2 items-center">
                             <Button theme='solid' action={() => setQuestionCreatorOpen(true)}>Create Question</Button>
                             {
@@ -400,8 +259,8 @@ const QuizList: NextPage = ({ }) => {
                                     >
                                         Delete {selectedCount} selected
                                     </Button>
-                                    {deleteExport && <p className="text-white pb-4 flex gap-2 items-center">
-                                        <LoadingSpinner />
+                                    {loadState && <p className="text-white pb-4 flex gap-2 items-center">
+                                        <LoadingSpinner /> {loadState}
                                     </p>}
                                 </>
                             }
