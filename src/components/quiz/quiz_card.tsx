@@ -26,8 +26,8 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, assignment }) => {
                 {
                     assignment ? (
                         <>
-                            <span className='block'>Available: {new Date(assignment.start).toLocaleString()}</span>
-                            <span className='block'>Due: {new Date(assignment.end).toLocaleString()}</span>
+                            <span className='block'>Available: {new Date(assignment.start).toLocaleString("en-NZ")}</span>
+                            <span className='block'>Due: {new Date(assignment.end).toLocaleString("en-NZ")}</span>
                         </>
                     ) : (
                         <>
