@@ -19,6 +19,7 @@ export const Quiz = {
             ): Quiz
 
             updateQuiz(
+                id: String!,
                 name: String,
                 description: String,
                 timeLimit: Int
@@ -105,9 +106,10 @@ export const Quiz = {
                     description: args.description,
                     timeLimit: args.timeLimit,
                     questions: {
-                        create: new Array(args.questions).fill(0).map(() => {
+                        create: new Array(args.questions).fill(0).map((_, index) => {
                             return {
                                 timeLimit: 0,
+                                index,
                             }
                         })
                     }
@@ -116,7 +118,8 @@ export const Quiz = {
                     assignments: {
                         include: {
                             sessions: true,
-                            students: true,
+                            student: true,
+                            group: true,
                         }
                     },
                     questions: {
@@ -144,7 +147,8 @@ export const Quiz = {
                     assignments: {
                         include: {
                             sessions: true,
-                            students: true,
+                            student: true,
+                            group: true,
                         }
                     },
                     questions: {
@@ -174,10 +178,25 @@ export const Quiz = {
             })
         },
 
-        addQuizQuestion: (_parent: any, args: { id: string }, context: Context) => {
+        addQuizQuestion: async (_parent: any, args: { id: string }, context: Context) => {
             ProtectQuery(context, false);
 
-            return context.prisma.quiz.update({
+            const prismaQuiz = await context.prisma.quiz.findFirst({
+                where: {
+                    id: args.id,
+                },
+                include: {
+                    questions: true,
+                }
+            });
+
+            if (!prismaQuiz) {
+                throw new Error(`Quiz with id ${args.id} does not exist!`);
+            }
+
+
+
+            return await context.prisma.quiz.update({
                 where: {
                     id: args.id,
                 },
@@ -185,6 +204,7 @@ export const Quiz = {
                     questions: {
                         create: {
                             timeLimit: 0,
+                            index: prismaQuiz.questions.length,
                         }
                     }
                 },
@@ -192,7 +212,8 @@ export const Quiz = {
                     assignments: {
                         include: {
                             sessions: true,
-                            students: true,
+                            student: true,
+                            group: true,
                         }
                     },
                     questions: {
@@ -222,7 +243,8 @@ export const Quiz = {
                     assignments: {
                         include: {
                             sessions: true,
-                            students: true,
+                            student: true,
+                            group: true,
                         }
                     },
                     questions: {

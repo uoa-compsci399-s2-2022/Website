@@ -14,7 +14,7 @@ import { DescriptionQuestion } from '@/components/question/description';
 import { MultiChoiceQuestion } from '@/components/question/multichoice';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
 
-const GetQuestionQuery = gql`
+export const GetQuestionQuery = gql`
     query($id: String!) {
         question(id: $id) {
             id

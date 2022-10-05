@@ -20,6 +20,7 @@ export const GetQuizQuery = gql`
             timeLimit
             questions {
                 id
+                index
                 timeLimit
                 quizQuestion {
                     id
@@ -156,7 +157,7 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
             </h3>
             <div className="px-6 pb-6 flex flex-col gap-2">
                 {
-                    quiz.questions.map((question, index) => {
+                    [...quiz.questions].sort((a, b) => a.index - b.index).map((question, index) => {
                         return (<div key={`question-${question.id}`}>
                             <p className="text-white text-md font-bold">Question {index + 1}</p>
                             {

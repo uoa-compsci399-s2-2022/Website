@@ -3,6 +3,7 @@ import { parse } from 'csv-parse';
 import { XMLParser } from 'fast-xml-parser';
 import { stringify } from 'querystring';
 import { QuizQuestion } from '@prisma/client';
+import { gql } from '@apollo/client';
 
 export const isStudent = (session?: Session): boolean => {
     return (session && session.user && 'student' in session.user) ?? false;
@@ -196,7 +197,7 @@ const importQuestionsJSON = async (file: File, onImport: OnImportQuestionsFunc):
     const text = await file.text();
     const jsonObject = JSON.parse(text);
 
-
+    onImport(jsonObject);
 };
 
 export const importQuestions = async (files: FileList | null | undefined, onImport: OnImportQuestionsFunc): Promise<void> => {
@@ -208,6 +209,20 @@ export const importQuestions = async (files: FileList | null | undefined, onImpo
         await importQuestionsJSON(file, onImport);
     }
 };
+
+const saveFileAsString = (text: string, type: string, name: string) => {
+    let fileElement = document.createElement('a');
+    fileElement.href = window.URL.createObjectURL(new Blob([text], {
+        type
+    }));
+    fileElement.download = name;
+    fileElement.click();
+    fileElement.remove();
+}
+
+export const exportQuestionsJSON = async (questions: QuizQuestion[]) => {
+    saveFileAsString(JSON.stringify(questions), 'application/json', `questions-export-${questions.length}-${new Date().toISOString()}.json`);
+}
 
 export const moodleFixHtml = (html: string, image: any): string => {
     let images = [];

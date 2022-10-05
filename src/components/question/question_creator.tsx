@@ -42,7 +42,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ }) => {
                 type="text"
             />
             <p>
-                To create folders, seperate category names with a fullstop.
+                To create folders, seperate category names with a forward slash.
             </p>
         </div>
     );

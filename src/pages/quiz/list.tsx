@@ -17,6 +17,7 @@ import Button from '@/components/button';
 import { QuestionCreator } from '@/components/question/question_creator';
 import { LoadingSpinner } from '@/components/loading';
 import { QuestionView } from '@/components/question/question_view';
+import ExportQuestions from '@/components/question/question_export';
 
 export const GetQuestionsQuery = gql`
     query {
@@ -133,6 +134,11 @@ const QuizList: NextPage = ({ }) => {
         user: User,
     })[];
 
+    const questionMap: Record<string, QuizQuestion> = {};
+    for (const question of questions) {
+        questionMap[question.id] = question;
+    }
+
     const uploadQuestions = async (questions: QuizQuestionProps[]) => {
         setLoadState('Uploading');
 
@@ -172,15 +178,15 @@ const QuizList: NextPage = ({ }) => {
                 setLoadState(undefined);
                 return;
             }
-            await refetch();
-            setLoadState(undefined);
             setSelected({});
         }
+        setLoadState(undefined);
+        await refetch();
     };
 
-    const selectedCount = Object.entries(selected)
+    const selectedQuestionIds = Object.entries(selected)
         .filter(([k, v]) => v && !k.startsWith('category.'))
-        .length;
+        .map(([k,]) => k);
 
     return (
         <main>
@@ -245,20 +251,19 @@ const QuizList: NextPage = ({ }) => {
                         <div className="flex gap-2 items-center">
                             <Button theme='solid' action={() => setQuestionCreatorOpen(true)}>Create Question</Button>
                             {
-                                selectedCount > 0 &&
+                                selectedQuestionIds.length > 0 &&
                                 <>
-                                    <Button
-                                        theme='solid'
-                                        action={() => { }}
-                                    >
-                                        Export {selectedCount} selected
-                                    </Button>
                                     <Button
                                         theme='danger'
                                         action={() => deleteSelected()}
                                     >
-                                        Delete {selectedCount} selected
+                                        Delete {selectedQuestionIds.length} selected
                                     </Button>
+                                    <ExportQuestions
+                                        selected={selectedQuestionIds}
+                                        onStart={() => setLoadState('Exporting')}
+                                        onComplete={() => setLoadState(undefined)}
+                                    />
                                     {loadState && <p className="text-white pb-4 flex gap-2 items-center">
                                         <LoadingSpinner /> {loadState}
                                     </p>}

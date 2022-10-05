@@ -61,6 +61,7 @@ export const typeDefs = gql`
 
     type QuizQuestionLink {
         id: String!
+        index: Int!
         timeLimit: Int
         quiz: Quiz!
         quizQuestion: QuizQuestion

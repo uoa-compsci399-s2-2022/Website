@@ -110,6 +110,7 @@ model Quiz {
 model QuizQuestionLink {
   id String @id @default(cuid())
 
+  index          Int
   timeLimit      Int?
   quiz           Quiz          @relation(fields: [quizId], references: [id])
   quizId         String
