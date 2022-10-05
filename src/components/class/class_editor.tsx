@@ -45,10 +45,10 @@ const InstructorsField: React.FC = () => {
                                 <label htmlFor={`instructors.${index}`}>
                                     Instructor {index + 1}
                                 </label>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 ">
                                     <Field
                                         id={`instructors.${index}`}
-                                        className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                                        className="outline outline-1 focus:outline-2 rounded w-full p-2 text-text-colour"
                                         name={`instructors.${index}`}
                                         type="text"
                                         validate={validateEmail}

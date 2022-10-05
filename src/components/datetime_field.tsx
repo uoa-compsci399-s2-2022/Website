@@ -11,11 +11,11 @@ export const DatetimeField: React.FC<DatetimeFieldProps> = ({ name }) => {
     return (
         <div className="w-full">
             <input
-                className="w-3/5 outline outline-1 focus:outline-2 rounded p-2 bg-slate-800 text-white accent-white"
+                className="w-3/5 outline outline-1 focus:outline-2 rounded p-2 bg-primary text-white accent-white"
                 type='date'
             />
             <input
-                className="w-2/5 outline outline-1 focus:outline-2 rounded p-2 bg-slate-800"
+                className="w-2/5 outline outline-1 focus:outline-2 rounded p-2 bg-primary"
                 type='time'
             />
         </div>

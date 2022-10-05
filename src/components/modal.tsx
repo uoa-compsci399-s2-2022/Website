@@ -38,7 +38,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, setIsOpen, title, children
                         leaveFrom="opacity-100 scale-100"
                         leaveTo="opacity-0 scale-95"
                     >
-                        <Dialog.Panel className="w-full sm:max-w-xl mx-auto rounded bg-primary p-4 max-h-screen overflow-y-auto text-text-colour">
+                        <Dialog.Panel className="w-full sm:max-w-xl mx-auto rounded bg-background p-4 max-h-screen overflow-y-auto text-text-colour border border-border">
                             <Dialog.Title className="text-xl font-bold pb-4">{title}</Dialog.Title>
 
                             {children}
