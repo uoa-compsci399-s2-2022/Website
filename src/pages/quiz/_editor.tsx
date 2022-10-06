@@ -1,15 +1,14 @@
 /**
  * The 'QuizEditor' component enables instructors to edit quizzes
  **/
+import React, { useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { Quiz, QuizAssignment, QuizQuestion, QuizQuestionLink } from '@prisma/client';
 import Button from '@/components/button';
 import { Modal } from '@/components/modal';
 import { QuestionAssigner } from '@/components/quiz/question_assigner';
 import { QuizCreator } from '@/components/quiz/quiz_creator';
-import { gql, useMutation, useQuery } from '@apollo/client';
-import { Quiz, QuizAssignment, QuizQuestion, QuizQuestionLink } from '@prisma/client';
-import { useRouter } from 'next/router';
-import React, { useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 
 export const GetQuizQuery = gql`
     query($id: String!) {

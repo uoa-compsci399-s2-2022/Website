@@ -1,3 +1,4 @@
+import { questionRemoveAnswers } from '@/lib/util';
 import { Context } from '@/pages/api/graphql';
 import { gql } from 'apollo-server-micro';
 import { ProtectQuery } from '../resolvers';
@@ -6,6 +7,7 @@ export const Quiz = {
     typeDefs: gql`
         extend type Query {
             quiz(id: String!): Quiz
+            quizNoAnswers(id: String!): Quiz
             quizzes: [Quiz!]!
             quizSessions: [QuizSession!]!
         }
@@ -56,6 +58,33 @@ export const Quiz = {
                 }
             });
         },
+        quizNoAnswers: async (_parent: any, arg: { id: string }, context: Context) => {
+            ProtectQuery(context, true);
+
+            const quiz = await context.prisma.quiz.findFirst({
+                where: {
+                    id: arg.id,
+                },
+                include: {
+                    assignments: true,
+                    questions: {
+                        include: {
+                            quizQuestion: true,
+                        }
+                    },
+                }
+            });
+
+            return {
+                ...quiz,
+                questions: quiz.questions.map(questionLink => {
+                    return {
+                        ...questionLink,
+                        quizQuestion: questionRemoveAnswers(questionLink.quizQuestion)
+                    }
+                })
+            }
+        },
         quizzes: (_parent: any, _arg: any, context: Context) => {
             ProtectQuery(context, false);
 
@@ -66,7 +95,12 @@ export const Quiz = {
                     }
                 },
                 include: {
-                    assignments: true,
+                    assignments: {
+                        include: {
+                            student: true,
+                            group: true,
+                        }
+                    },
                     questions: {
                         include: {
                             quizQuestion: true,

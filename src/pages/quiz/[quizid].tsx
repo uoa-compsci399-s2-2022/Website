@@ -8,7 +8,7 @@ import { GetServerSideProps, NextPage } from 'next'
 import { unstable_getServerSession } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import { authOptions } from '../api/auth/[...nextauth]'
-import QuizApplet from './_applet'
+import QuizApplet, { GetQuizNoAnswersQuery } from './_applet'
 import QuizEditor, { GetQuizQuery } from './_editor'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -29,7 +29,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 }
             });
         } else {
-            /* todo: add getQuizNoAnswers query */
+            await apolloClient.query({
+                query: GetQuizNoAnswersQuery,
+                variables: {
+                    id,
+                }
+            });
         }
 
         return addApolloState(apolloClient, {
@@ -59,10 +64,13 @@ const Quiz: NextPage<QuizProps> = ({ id }) => {
     // Pull data about our quiz in from the server here, then provide it to the applet or
     // the editor.
 
+    if (!session || !session.user) return <p>aaa</p>
+
     return <>
         {
-            session && isStudent(session) ?
+            session && session.user && isStudent(session) ?
                 <QuizApplet
+                    id={id}
                 /> :
                 <QuizEditor
                     id={id}

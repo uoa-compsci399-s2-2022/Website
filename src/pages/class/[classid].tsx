@@ -10,14 +10,14 @@ import { gql, useQuery } from '@apollo/client';
 import { useState } from 'react';
 import { isStudent } from '@/lib/util';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
-import { Group, Student, User, Class as PrismaClass } from '@prisma/client';
+import { Group, Student, User, Class as PrismaClass, QuizAssignment, QuizQuestion, Quiz } from '@prisma/client';
 import ClassCardContainer from '@/components/class/class_card_container';
 import MainClassCard from '@/components/class/main_class_card';
 import StatsCard from '@/components/class/stats_card';
 import ClassCard from '@/components/class_card';
 import StudentsCard from '@/components/class/students_card';
 import GroupsCard from '@/components/class/groups_card';
-import QuizListCard from '@/components/class/quiz_list_card';
+import AssignmentsCard, { GetQuizAssignmentsQuery } from '@/components/class/assignments_card';
 
 
 const GetClassQuery = gql`
@@ -99,9 +99,20 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 
 const Class: NextPage<{ textid: string }> = ({ textid }) => {
-    const { loading, error, data, refetch } = useQuery(GetClassQuery, {
+    const { data, refetch } = useQuery(GetClassQuery, {
         variables: { textid }
     })
+
+    const { data: quizData, loading: quizDataLoading, refetch: quizRefetch } = useQuery(GetQuizAssignmentsQuery);
+
+    const quizzes = (quizData?.quizzes ?? []) as (Quiz & {
+        user: User,
+        assignments: (QuizAssignment & {
+            student?: Student,
+            group?: Group,
+        })[],
+        questions: (QuizQuestion | null)[]
+    })[];
 
     const _class = data.class as PrismaClass & {
         students: Student[],
@@ -111,93 +122,24 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
         users: User[],
     } | null;
 
-    /*
-    const updateClass = (props: any): void => {
-        fetch('/api/class', {
-            method: 'PUT',
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                ...props,
-                textid: _class?.textid,
-            })
-        }).then((result) => {
-            result.json().then((res) => {
-                if ('error' in res) {
-                    setError(res['error']);
-                } else {
-                    router.reload();
-                }
-            }).catch((e) => {
-                console.error(e);
-            });
-        }).catch((e) => {
-            console.error(e);
-        });
+    const doRefetch = () => {
+        refetch();
+        quizRefetch();
     }
-
-    const onImport = (students: ImportedStudent[]): void => {
-        updateClass({
-            add: {
-                students,
-            }
-        });
-    }
-
-    const removeStudent = (student: Student) => {
-        updateClass({
-            remove: {
-                students: [{ ...student, email: student.email ?? undefined }],
-            }
-        });
-    }
-
-    const changeName = () => {
-        const name = prompt('Enter a new name') ?? undefined;
-
-        updateClass({
-            update: {
-                name
-            }
-        });
-    };
-
-
-    Old student list
-    <div className="p-4">
-            {_class && <>
-                <p className="text-white text-xl">Class:
-                    <a onClick={() => { }} className="pl-2 cursor-pointer">{_class.name}</a>
-                </p>
-                <ul>
-                    {_class.students.map((student) => (
-                        <li className="text-white" key={student.passcode}>
-                            {student.name} ({student.passcode})
-                            <a onClick={() => { }} className="pl-2 cursor-pointer">remove</a>
-                        </li>
-                    ))}
-                </ul>
-                <ImportStudents onImport={() => { }} />
-                <p>{error && error.message}</p>
-            </>}
-        </div >
-
-    */
 
     return (
         <div className="">
             <ClassCardContainer cols="md:grid-cols-2">
 
-                <MainClassCard _class={_class} doRefetch={() => refetch()} />
+                <MainClassCard _class={_class} doRefetch={doRefetch} />
                 <StatsCard />
 
             </ClassCardContainer>
             <ClassCardContainer cols="md:grid-cols-2 lg:grid-cols-3">
 
-                <StudentsCard students={_class.students} id={_class.id} doRefetch={() => refetch()} />
-                <GroupsCard _class={_class} doRefetch={() => refetch()} />
-                <QuizListCard />
+                <StudentsCard students={_class.students} id={_class.id} doRefetch={doRefetch} />
+                <GroupsCard _class={_class} doRefetch={doRefetch} />
+                <AssignmentsCard quizzes={quizzes} loading={quizDataLoading} doRefetch={doRefetch} />
 
             </ClassCardContainer>
         </div>
