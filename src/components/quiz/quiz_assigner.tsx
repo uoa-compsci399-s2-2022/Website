@@ -19,7 +19,7 @@ const AssignQuizMutation = gql`
     }
 `;
 
-const QuizSelector: React.FC = ({ }) => {
+export const QuizSelector: React.FC = ({ }) => {
     const [field, meta, helper] = useField<Quiz>('quiz');
     const { data, loading, ...all } = useQuery(GetQuizzesQuery);
 
@@ -193,7 +193,13 @@ export const QuizAssigner: React.FC<QuizAssignerProps> = ({ isOpen, setIsOpen, d
                     const loading = isSubmitting || isValidating;
                     return (
                         <Form className="flex flex-col gap-2">
-                            <QuizSelector />
+                            <div className="flex flex-col gap-1">
+                                <label htmlFor="assignments">
+                                    Quiz
+                                </label>
+
+                                <QuizSelector />
+                            </div>
 
                             <AssignToField _class={_class} />
 

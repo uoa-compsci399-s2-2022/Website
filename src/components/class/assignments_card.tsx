@@ -1,10 +1,11 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Class, Group, Quiz, QuizAssignment, QuizQuestion, Student, User } from '@prisma/client';
 import { useEffect, useRef, useState } from 'react';
 import Button from '../button';
 import Card from '../card';
+import { AssignmentEditor } from '../quiz/assignment_editor';
 
 export const GetQuizAssignmentsQuery = gql`
     query {
@@ -42,8 +43,20 @@ export const GetQuizAssignmentsQuery = gql`
     }
 `;
 
+const DeleteAssignmentQuery = gql`
+    mutation($id: String!) {
+        deleteAssignment(id: $id) {
+            id
+        }
+    }
+`;
+
 interface AssignmentGroup {
     quiz: Quiz,
+    assignments: (QuizAssignment & {
+        student?: Student,
+        group?: Group,
+    })[],
     startDate: Date,
     endDate: Date,
     students: Student[],
@@ -66,6 +79,8 @@ interface AssignmentsCardProps {
 const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doRefetch }) => {
     const searchRef = useRef<HTMLInputElement>(null);
     const [assignmentGroups, setAssignmentGroups] = useState<AssignmentGroup[]>([]);
+    const [editingAssignmentGroup, setEditingAssignmentGroup] = useState<AssignmentGroup | undefined>(undefined);
+    const [deleteAssignment] = useMutation(DeleteAssignmentQuery);
 
     useEffect(() => {
         const generateAssignmentKey = (assignment: QuizAssignment): string => {
@@ -88,6 +103,7 @@ const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doR
                         } else if (assignment.group) {
                             assignmentRecord[key].groups.push(assignment.group);
                         }
+                        assignmentRecord[key].assignments.push(assignment);
                     } else {
                         const members: any = {
                             students: [],
@@ -101,6 +117,7 @@ const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doR
 
                         assignmentRecord[key] = {
                             quiz,
+                            assignments: [assignment],
                             startDate: new Date(assignment.start),
                             endDate: new Date(assignment.end),
                             ...members,
@@ -115,6 +132,23 @@ const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doR
         setAssignmentGroups(groups);
 
     }, [quizzes]);
+
+    const deleteAssignmentGroup = async (assignmentGroup: AssignmentGroup) => {
+        try {
+            for (const assignment of assignmentGroup.assignments) {
+                await deleteAssignment({
+                    variables: {
+                        id: assignment.id,
+                    }
+                });
+            }
+
+            doRefetch();
+        } catch (error) {
+            console.error(error);
+            alert(error);
+        }
+    }
 
     const getDateText = (date: Date): string => {
         return `${date.toLocaleDateString('en-NZ')} at ${date.getHours()}:${date.getMinutes()}`
@@ -158,13 +192,16 @@ const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doR
                                 <Button
                                     theme="passive"
                                     action={() => {
+                                        setEditingAssignmentGroup(assignmentGroup);
                                     }}
                                 >
                                     Edit
                                 </Button>
                                 <Button
                                     theme='danger'
-                                    action={() => { }}
+                                    action={() => {
+                                        deleteAssignmentGroup(assignmentGroup);
+                                    }}
                                 >
                                     <FontAwesomeIcon className="py-1" icon={faTrashCan} />
                                 </Button>
@@ -173,6 +210,27 @@ const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doR
                     ))
                 }
             </div>
+
+            <AssignmentEditor
+                isOpen={editingAssignmentGroup !== undefined}
+                setIsOpen={(isOpen) => {
+                    if (!isOpen) {
+                        setEditingAssignmentGroup(undefined);
+                    } else {
+                        alert('Error');
+                    }
+                }}
+                doRefetch={doRefetch}
+                initialValues={
+                    editingAssignmentGroup && {
+                        assignments: editingAssignmentGroup.assignments,
+                        unchanged: [],
+                        quiz: editingAssignmentGroup.quiz,
+                        startDate: editingAssignmentGroup.startDate,
+                        endDate: editingAssignmentGroup.endDate,
+                    }
+                }
+            />
         </Card>
     )
 }

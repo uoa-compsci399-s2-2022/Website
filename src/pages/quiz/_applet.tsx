@@ -92,8 +92,6 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id }) => {
         assignments: QuizAssignment[],
     };
 
-    console.log(quiz);
-
     return <>
         <div className="p-4">
             <div>

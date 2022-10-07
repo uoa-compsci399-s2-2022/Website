@@ -17,6 +17,15 @@ export const Assignment = {
                 start: DateTime!, 
                 end: DateTime!
             ): QuizAssignment
+
+            updateAssignment(
+                id: String!,
+                quiz: String,
+                start: DateTime,
+                end: DateTime,
+            ): QuizAssignment
+
+            deleteAssignment(id: String!): QuizAssignment!
         }
     `,
     queries: {
@@ -124,8 +133,66 @@ export const Assignment = {
                     start: args.start,
                     end: args.end,
                     ...creationConnection,
+                },
+                include: {
+                    quiz: true,
+                    assignedBy: true,
+                    sessions: true,
+                }
+            });
+        },
+
+        /*updateAssignment(
+                id: String!,
+                quiz: String,
+                start: DateTime,
+                end: DateTime,
+            ): QuizAssignment
+            */
+        updateAssignment: (_parent: any, args: { id: string, quiz?: string, start?: Date, end?: Date }, context: Context) => {
+            ProtectQuery(context, false);
+
+            const quizData: any = {};
+            if (args.quiz) {
+                quizData.quiz = {
+                    connect: {
+                        id: args.quiz,
+                    }
+                };
+            }
+
+            return context.prisma.quizAssignment.update({
+                where: {
+                    id: args.id,
+                },
+                data: {
+                    ...quizData,
+                    start: args.start,
+                    end: args.end,
+                },
+                include: {
+                    quiz: true,
+                    assignedBy: true,
+                    sessions: true,
+                }
+            })
+        },
+
+        // deleteAssignment(id: String!): QuizAssignment!
+        deleteAssignment: (_parent: any, args: { id: string }, context: Context) => {
+            ProtectQuery(context, false);
+
+            return context.prisma.quizAssignment.delete({
+                where: {
+                    id: args.id,
+                },
+                include: {
+                    quiz: true,
+                    assignedBy: true,
+                    sessions: true,
                 }
             });
         }
     },
+
 }
