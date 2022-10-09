@@ -92,7 +92,7 @@ export const typeDefs = gql`
     type QuizSession {
         id: String!
         start: DateTime!
-        finish: DateTime!
+        finish: DateTime
         data: JSON!
         student: Student
         group: Group

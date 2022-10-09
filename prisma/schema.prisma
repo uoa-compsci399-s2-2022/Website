@@ -148,7 +148,7 @@ model QuizAssignment {
 model QuizSession {
   id               String         @id @default(cuid())
   start            DateTime       @default(now())
-  finish           DateTime
+  finish           DateTime?
   data             Json
   student          Student?       @relation(fields: [studentId], references: [id])
   studentId        String?

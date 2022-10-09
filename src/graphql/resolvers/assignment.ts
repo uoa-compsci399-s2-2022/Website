@@ -5,6 +5,7 @@ import { ProtectQuery } from '../resolvers';
 export const Assignment = {
     typeDefs: gql`
         extend type Query {
+            assignment(quiz: String!): QuizAssignment
             upcomingQuizzes: [QuizAssignment!]!
             previousQuizzes: [QuizAssignment!]!
         }
@@ -29,6 +30,33 @@ export const Assignment = {
         }
     `,
     queries: {
+        assignment: (_parent: any, arg: { quiz: string }, context: Context) => {
+            ProtectQuery(context, true);
+
+            let findParams = {}
+            if (context.session.user.group) {
+                findParams = {
+                    groupId: context.session.user.uid,
+                };
+            } else {
+                findParams = {
+                    studentId: context.session.user.uid,
+                };
+            }
+
+            return context.prisma.quizAssignment.findFirst({
+                where: {
+                    quizId: arg.quiz,
+                    ...findParams,
+                },
+                include: {
+                    quiz: true,
+                    assignedBy: true,
+                    sessions: true,
+                }
+            });
+        },
+
         upcomingQuizzes: (_parent: any, _arg: any, context: Context) => {
             ProtectQuery(context, true);
 

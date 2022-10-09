@@ -8,7 +8,7 @@ import { GetServerSideProps, NextPage } from 'next'
 import { unstable_getServerSession } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import { authOptions } from '../api/auth/[...nextauth]'
-import QuizApplet, { GetQuizNoAnswersQuery } from './_applet'
+import QuizApplet, { AssignmentQuery, GetQuizNoAnswersQuery } from './_applet'
 import QuizEditor, { GetQuizQuery } from './_editor'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -29,6 +29,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 }
             });
         } else {
+            await apolloClient.query({
+                query: AssignmentQuery,
+                variables: {
+                    quiz: id,
+                }
+            });
+
             await apolloClient.query({
                 query: GetQuizNoAnswersQuery,
                 variables: {
