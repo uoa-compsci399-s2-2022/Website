@@ -3,7 +3,8 @@ import { faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { RadioGroup } from '@headlessui/react';
 import { Field, FieldArray, useField } from 'formik';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import Button from '../button';
 import MarkdownField from '../markdown_field';
 
@@ -36,7 +37,7 @@ const MultiChoiceQuestionResponse: React.FC<MultiChoiceQuestionResponseProps> = 
                     <Field
                         className="outline outline-1 focus:outline-2 rounded w-full p-2"
                         id={`content-answers-${index}-grade`}
-                        name={`content.answers.${index}.grade`}
+                        name={`content.answers.${index}.score`}
                         type="number"
                         validate={(): null => null}
                     />
@@ -104,67 +105,108 @@ export const MultiChoiceQuestionBuilder: React.FC<MultiChoiceQuestionBuilderProp
 interface MultiChoiceQuestionProps {
     content: any,
     attribution?: string,
+    answer?: SessionAnswer,
+    changeAnswer?: (answer: SessionAnswer) => void,
 }
 
-export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ content }) => {
-    const [selected, setSelected] = useState(content.answers[0])
+export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ content, answer, changeAnswer }) => {
+    const [selected, setSelected] = useState<number | number[]>(undefined);
+
+    useEffect(() => {
+        if (answer && changeAnswer && answer.type === 'multichoice' && (!selected || answer.answer !== selected)) {
+            setSelected(answer.answer);
+        }
+    }, [answer]);
+
+    console.log(selected);
 
     return (
         <div className="m-2 p-2 bg-white">
-            <div dangerouslySetInnerHTML={{ __html: moodleFixHtml(content.label.text, content.label.image) }} />
+            {
+                content.source === 'moodle' ?
+                    <div dangerouslySetInnerHTML={{ __html: moodleFixHtml(content.label.text, content.label.image) }} />
+                    :
+                    <div>
+                        <ReactMarkdown>
+                            {content.description}
+                        </ReactMarkdown>
+                    </div>
+            }
 
             <div>
-                <RadioGroup value={selected} onChange={setSelected}>
-                    <RadioGroup.Label className="sr-only">Answers</RadioGroup.Label>
-                    <div className="space-y-2">
-                        {
-                            content.answers.map((answer: any, index: number) => (
-                                <RadioGroup.Option
+                <div className="space-y-2">
+                    {
+                        content.answers.map((value: any, index: number) => {
+                            const checked = Array.isArray(selected) ? selected.filter(a => a === index).length > 0 : index === selected;
+                            return (
+                                <div
                                     key={`answer-${index}`}
-                                    value={answer}
-                                    className={({ active, checked }) =>
-                                        `${active
-                                            ? ''
-                                            : ''
+                                    onClick={() => {
+                                        if (content.single) {
+                                            setSelected(value);
+                                            changeAnswer({
+                                                type: 'multichoice',
+                                                answer: index,
+                                            });
+                                        } else {
+                                            if (selected && Array.isArray(selected)) {
+                                                if (checked) {
+                                                    const selection = (selected as number[]).filter(i => i !== index);
+                                                    setSelected(selection);
+                                                    changeAnswer({
+                                                        type: 'multichoice',
+                                                        answer: selection,
+                                                    });
+                                                } else {
+                                                    const selection = [...selected as number[], index];
+                                                    setSelected(selection);
+                                                    changeAnswer({
+                                                        type: 'multichoice',
+                                                        answer: selection,
+                                                    });
+                                                }
+                                            } else {
+                                                setSelected([index]);
+                                                changeAnswer({
+                                                    type: 'multichoice',
+                                                    answer: [index],
+                                                });
+                                            }
                                         }
-                  ${checked ? 'bg-sky-900 bg-opacity-75 text-white' : 'bg-white'
-                                        }
-                    relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md focus:outline-none`
+                                    }}
+                                    className={
+                                        `${checked ?
+                                            'bg-sky-900 bg-opacity-75 text-white' :
+                                            'bg-white'
+                                        } relative flex cursor-pointer rounded-lg px-5 py-4 
+                                        shadow-md focus:outline-none`
                                     }
                                 >
-                                    {({ active, checked }) => (
-                                        <>
-                                            <div className="flex w-full items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <div className="text-sm">
-                                                        <RadioGroup.Label
-                                                            as="p"
-                                                            className={`font-medium  ${checked ? 'text-white' : 'text-gray-900'}`}
-                                                            dangerouslySetInnerHTML={{ __html: moodleFixHtml(answer.text, answer.image) }}
-                                                        />
-                                                        <RadioGroup.Description
-                                                            as="span"
-                                                            className={`inline ${checked ? 'text-sky-100' : 'text-gray-500'
-                                                                }`}
-                                                        >
-                                                        </RadioGroup.Description>
-                                                    </div>
-                                                </div>
-                                                {checked && (
-                                                    <div className="shrink-0 text-white">
-                                                        <CheckIcon className="h-6 w-6" />
-                                                    </div>
-                                                )}
+                                    <div className="flex w-full items-center justify-between">
+                                        <div className="flex items-center">
+                                            <div className="text-sm">
+                                                <p
+                                                    className={`font-medium  ${checked ? 'text-white' : 'text-gray-900'}`}
+                                                    dangerouslySetInnerHTML={{ __html: moodleFixHtml(value.text, value.image) }}
+                                                />
+                                                <span
+                                                    className="inline"
+                                                >
+                                                </span>
                                             </div>
-                                        </>
-                                    )}
-                                </RadioGroup.Option>
-                            ))
-                        }
-                    </div>
-                </RadioGroup>
+                                        </div>
+                                        {checked && (
+                                            <div className="shrink-0 text-white">
+                                                <CheckIcon className="h-6 w-6" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>);
+                        })
+                    }
+                </div >
             </div>
-        </div >
+        </div>
     );
 }
 

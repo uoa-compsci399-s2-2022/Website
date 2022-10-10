@@ -1,5 +1,12 @@
+interface QuizSessionData {
+    state: SessionState,
+    events: Record<string, SessionEvent>,
+    answers: Record<string, SessionAnswer>,
+}
+
 interface SessionState {
     id: string,
+    question: number,
 }
 
 type SessionEvent = {
@@ -9,13 +16,13 @@ type SessionEvent = {
 } | {
     event: 'changeAnswer',
     question: number,
-    from?: number,
-    to: number,
+    from?: SessionAnswer,
+    to: SessionAnswer,
 };
 
 type SessionAnswer = {
     type: 'multichoice',
-    answer: number,
+    answer: number | number[],
 } | {
     type: 'numerical',
     answer: string,

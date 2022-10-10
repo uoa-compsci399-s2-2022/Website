@@ -5,6 +5,10 @@ import { stringify } from 'querystring';
 import { QuizQuestion } from '@prisma/client';
 import { gql } from '@apollo/client';
 
+// https://stackoverflow.com/questions/2998784/how-to-output-numbers-with-leading-zeros-in-javascript
+export const zeroPad = (num: number, places: number) => String(num).padStart(places, '0');
+
+
 export const isStudent = (session?: Session): boolean => {
     return (session && session.user && 'student' in session.user) ?? false;
 }
@@ -261,3 +265,28 @@ export const questionRemoveAnswers = (question: QuizQuestion) => {
     console.error('questionRemoveAnswers is unimplemented!');
     return question;
 };
+
+export const questionGrade = (question: QuizQuestion, answer: SessionAnswer): number => {
+    const content = question.content as any;
+    if (content.source === 'moodle') {
+        switch (question.type as QuestionType) {
+            case 'description': {
+                return 0;
+            }
+            case 'multichoice': {
+                if (content.single) {
+                    return content.answers[answer.answer].score;
+                } else {
+                    return answer.answer
+                        .map((ans: number) => parseInt(content.answers[ans].score))
+                        .reduce((a: number, b: number) => a + b, 0);
+                }
+            }
+            case 'numerical': {
+                console.error('unimplemented: question grade (numerical)');
+            }
+        }
+    } else {
+
+    }
+}

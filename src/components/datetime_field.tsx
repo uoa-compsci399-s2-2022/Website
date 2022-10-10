@@ -1,5 +1,6 @@
 import { useField } from 'formik';
 import React from 'react';
+import { zeroPad } from '@/lib/util';
 
 interface DatetimeFieldProps {
     name: string,
@@ -7,9 +8,6 @@ interface DatetimeFieldProps {
 
 export const DatetimeField: React.FC<DatetimeFieldProps> = ({ name }) => {
     const [field, meta, helper] = useField<Date>(name);
-
-    // https://stackoverflow.com/questions/2998784/how-to-output-numbers-with-leading-zeros-in-javascript
-    const zeroPad = (num: number, places: number) => String(num).padStart(places, '0');
 
     const toDateString = (date?: Date): string => {
         if (!date) return '';
