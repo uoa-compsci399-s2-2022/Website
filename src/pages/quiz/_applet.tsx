@@ -11,6 +11,8 @@ import Button from '@/components/button';
 import ReactMarkdown from 'react-markdown';
 import { zeroPad } from '@/lib/util';
 import { LoadingSpinner } from '@/components/loading';
+import { MemoryGameQuestion } from '@/components/question/memory_game';
+import NumericalQuestion from '@/components/question/numerical';
 
 export const GetQuizNoAnswersQuery = gql`
     query($id: String!) {
@@ -170,26 +172,49 @@ interface QuestionViewProps {
     question: QuizQuestion,
     state: SessionState,
     answer?: SessionAnswer,
+    canChangeAnswer: boolean,
+    setDisableControls: (disableControls: boolean) => void,
     updateState: (update: any) => void,
     changeAnswer: (answer: SessionAnswer) => void,
     pushEvent: (event: SessionEvent) => void,
 }
 
-const QuestionView: React.FC<QuestionViewProps> = ({ question, state, answer, updateState, changeAnswer, pushEvent }) => {
+const QuestionView: React.FC<QuestionViewProps> = ({ question, state, answer, canChangeAnswer, setDisableControls, updateState, changeAnswer, pushEvent }) => {
+
     let content = (<></>);
 
     switch (question.type) {
         case 'description': {
-            content = <DescriptionQuestion content={question.content} />;
+            content = <DescriptionQuestion
+                content={question.content}
+            />;
             break;
         };
         case 'multichoice': {
-            content = <MultiChoiceQuestion content={question.content} answer={answer} changeAnswer={changeAnswer} />;
+            content = <MultiChoiceQuestion
+                content={question.content}
+                answer={answer}
+                canChangeAnswer={canChangeAnswer}
+                changeAnswer={changeAnswer}
+            />;
             break;
         };
         case 'numerical': {
-
+            content = <NumericalQuestion
+                content={question.content}
+            />
         };
+        case 'memory_game': {
+            content = <MemoryGameQuestion
+                content={question.content}
+                state={state}
+                answer={answer}
+                setDisableControls={setDisableControls}
+                updateState={updateState}
+                changeAnswer={changeAnswer}
+                pushEvent={pushEvent}
+            />
+        }
     }
 
     return (
@@ -211,11 +236,15 @@ const QuestionView: React.FC<QuestionViewProps> = ({ question, state, answer, up
 interface QuizCountdownProps {
     started: Date,
     timeLimit: number,
+    questionStarted?: Date,
+    questionTimeLimit?: number,
     onTimeUp: () => void,
+    onQuestionTimeUp: () => void,
 }
 
-const QuizCountdown: React.FC<QuizCountdownProps> = ({ started, timeLimit, onTimeUp }) => {
+const QuizCountdown: React.FC<QuizCountdownProps> = ({ started, timeLimit, questionStarted, questionTimeLimit, onTimeUp, onQuestionTimeUp }) => {
     const [remaining, setRemaining] = useState({ tseconds: 0, seconds: 0, minutes: 0, hours: 0 });
+    const [remainingQ, setRemainingQ] = useState({ tseconds: 0, seconds: 0, minutes: 0, hours: 0 });
 
     const updateTimer = () => {
         const currentTime = new Date();
@@ -230,13 +259,28 @@ const QuizCountdown: React.FC<QuizCountdownProps> = ({ started, timeLimit, onTim
         if (remaining <= 0) {
             onTimeUp();
         }
+
+        if (questionStarted) {
+            const currentTimeQ = new Date();
+            const secondsQ = (currentTimeQ.getTime() - new Date(questionStarted).getTime()) / 1000;
+            const remainingQ = (questionTimeLimit * 60) - secondsQ;
+            setRemainingQ({
+                hours: Math.floor(remainingQ / (60 * 60)),
+                minutes: Math.floor(remainingQ / 60) % 60,
+                seconds: Math.floor(remainingQ % 60),
+                tseconds: Math.floor(remainingQ),
+            });
+            if (remainingQ <= 0) {
+                onQuestionTimeUp();
+            }
+        }
     }
 
     useEffect(() => {
         updateTimer();
         const updateInterval = setInterval(updateTimer, 500);
         return () => clearInterval(updateInterval);
-    }, []);
+    }, [questionStarted]);
 
     return (
         <div className="absolute top-24 right-4">
@@ -247,8 +291,25 @@ const QuizCountdown: React.FC<QuizCountdownProps> = ({ started, timeLimit, onTim
                     <span>{zeroPad(remaining.seconds, 2)}</span>
                     {' '} remaining
                 </h1>
-                <p className="text-white">
-                </p>
+                {
+                    questionStarted &&
+                    <div>
+                        <p className="text-white pb-2">
+                            This question: {remainingQ.hours > 0 && <span>{zeroPad(remainingQ.hours, 2)}:</span>}
+                            <span>{zeroPad(remainingQ.minutes, 2)}</span>:
+                            <span>{zeroPad(remainingQ.seconds, 2)}</span>
+                            {' '} remaining
+                        </p>
+                        <Button
+                            action={() => {
+                                onQuestionTimeUp();
+                            }}
+                            theme='solid'
+                        >
+                            Finish question
+                        </Button>
+                    </div>
+                }
                 {remaining.tseconds < 60 && <p
                     className="text-red-500"
                 >
@@ -293,15 +354,23 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
     useEffect(() => {
         window.addEventListener('beforeunload', onUnload);
 
-        return () => window.removeEventListener('beforeunload', onUnload);
+        return () => {
+            window.removeEventListener('beforeunload', onUnload);
+        }
     }, []);
 
-    const updateState = async (update: any) => {
+    const updateState = async (update: any | ((current: SessionState) => SessionState)) => {
         setState(state => {
-            const next = {
-                ...state,
-                ...update,
-            };
+            let next = {};
+
+            if (typeof update !== 'function') {
+                next = {
+                    ...state,
+                    ...update,
+                };
+            } else {
+                next = update(state);
+            }
 
             setStateMutation({
                 variables: {
@@ -309,7 +378,7 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                     state: next,
                 }
             });
-            return next;
+            return next as SessionState;
         });
     }
 
@@ -362,29 +431,95 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
         setSaving(false);
     }
 
+    const startQuestionTimer = () => {
+        updateState((prev: SessionState) => {
+            const next = { ...prev, timeLimitStarted: { ...prev.timeLimitStarted } };
+            next.timeLimitStarted[prev.question] = new Date();
+            console.log({ prev, next });
+            return next;
+        });
+        pushEventMutation({
+            variables: {
+                id: session.id,
+                event: {
+                    event: 'startQuestion',
+                    question: state.question,
+                } as SessionEvent
+            }
+        });
+        setDisableControls(true);
+    }
+
+    const questionTimeUp = () => {
+        updateState((prev: SessionState) => {
+            const next = {
+                ...prev,
+                timeLimitEnded: {
+                    ...prev.timeLimitEnded,
+                }
+            };
+            next.timeLimitEnded[prev.question] = true;
+            return next;
+        });
+        pushEventMutation({
+            variables: {
+                id: session.id,
+                event: {
+                    event: 'finishQuestion',
+                    question: state.question,
+                } as SessionEvent
+            }
+        });
+        setDisableControls(false);
+    }
+
     return (
         <div className="p-4">
             <QuizCountdown
                 started={session.start}
                 timeLimit={quiz.timeLimit}
+                questionStarted={state.timeLimitEnded[state.question] ? undefined : state.timeLimitStarted[state.question]}
+                questionTimeLimit={quiz.questions[state.question].timeLimit}
                 onTimeUp={finishQuiz}
+                onQuestionTimeUp={questionTimeUp}
             />
             <div>
-                <QuestionView
-                    question={quiz.questions[state.question].quizQuestion}
-                    state={state}
-                    answer={answers[`${state.question}`] ?? undefined}
-                    updateState={updateState}
-                    changeAnswer={changeAnswer}
-                    pushEvent={(event) => {
-                        pushEventMutation({
-                            variables: {
-                                id: session.id,
-                                event,
-                            }
-                        });
-                    }}
-                />
+                {
+                    (quiz.questions[state.question].timeLimit > 0 && !(state.question in state.timeLimitStarted)) ?
+                        <div className="p-4 max-w-3xl mx-auto">
+                            <div className="rounded-lg bg-slate-600 m-4 p-6 flex flex-col gap-2">
+                                <h1 className="text-white">This question has a time limit</h1>
+                                <p className="text-white">
+                                    You only have {quiz.questions[state.question].timeLimit} minutes to complete this question.
+                                    Once the time limit is up, you will no longer be able to update this question.
+                                </p>
+                                <Button
+                                    action={() => startQuestionTimer()}
+                                    theme='solid'
+                                >
+                                    Start
+                                </Button>
+                            </div>
+                        </div>
+                        :
+                        <QuestionView
+                            question={quiz.questions[state.question].quizQuestion}
+                            state={state}
+                            answer={answers[`${state.question}`] ?? undefined}
+                            canChangeAnswer={!(quiz.questions[state.question].timeLimit > 0 && state.timeLimitEnded[state.question])}
+                            setDisableControls={setDisableControls}
+                            updateState={updateState}
+                            changeAnswer={changeAnswer}
+                            pushEvent={(event) => {
+                                pushEventMutation({
+                                    variables: {
+                                        id: session.id,
+                                        event,
+                                    }
+                                });
+                            }}
+                        />
+                }
             </div>
             <div className="flex items-center justify-center gap-4">
                 <Button
@@ -603,6 +738,8 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id, assignmentId }) => {
                 const state: SessionState = {
                     id,
                     question: 0,
+                    timeLimitStarted: {},
+                    timeLimitEnded: {},
                 }
                 const { data: updatedData } = await setStateMutation({
                     variables: {

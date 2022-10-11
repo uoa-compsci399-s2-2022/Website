@@ -20,10 +20,12 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, assignment }) => {
 
     // fix hydration error with date
     useEffect(() => {
-        setTimes({
-            available: new Date(assignment.start).toLocaleString('en-NZ'),
-            due: new Date(assignment.end).toLocaleString('en-NZ'),
-        });
+        if (assignment) {
+            setTimes({
+                available: new Date(assignment.start).toLocaleString('en-NZ'),
+                due: new Date(assignment.end).toLocaleString('en-NZ'),
+            });
+        }
     }, []);
 
     return (

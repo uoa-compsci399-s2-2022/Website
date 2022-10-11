@@ -31,6 +31,8 @@ export const DatetimeField: React.FC<DatetimeFieldProps> = ({ name }) => {
                     currentDate.setFullYear(newDayMonthYear.getFullYear(),
                         newDayMonthYear.getMonth(),
                         newDayMonthYear.getDate());
+                    currentDate.setSeconds(0);
+                    currentDate.setMilliseconds(0);
                     helper.setValue(currentDate);
                 }}
             />
@@ -43,6 +45,8 @@ export const DatetimeField: React.FC<DatetimeFieldProps> = ({ name }) => {
                     const [hours, minutes] = event.target.value.split(':');
                     currentDate.setHours(parseInt(hours));
                     currentDate.setMinutes(parseInt(minutes));
+                    currentDate.setSeconds(0);
+                    currentDate.setMilliseconds(0);
                     helper.setValue(currentDate);
                 }}
             />

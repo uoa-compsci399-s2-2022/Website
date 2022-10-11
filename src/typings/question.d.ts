@@ -1,1 +1,1 @@
-type QuestionType = 'description' | 'multichoice' | 'numerical';
+type QuestionType = 'description' | 'multichoice' | 'numerical' | 'memory_game';

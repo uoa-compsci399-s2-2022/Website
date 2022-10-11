@@ -13,6 +13,8 @@ import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { DescriptionQuestion } from '@/components/question/description';
 import { MultiChoiceQuestion } from '@/components/question/multichoice';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
+import NumericalQuestion from '@/components/question/numerical';
+import { MemoryGameQuestion } from '@/components/question/memory_game';
 
 export const GetQuestionQuery = gql`
     query($id: String!) {
@@ -90,8 +92,12 @@ const QuestionPreview: NextPage<QuestionPreviewProps> = ({ id }) => {
             break;
         };
         case 'numerical': {
-
+            content = <NumericalQuestion content={question.content} />;
+            break;
         };
+        case 'memory_game': {
+            content = <MemoryGameQuestion content={question.content} />
+        }
     }
 
     return (

@@ -7,12 +7,20 @@ interface QuizSessionData {
 interface SessionState {
     id: string,
     question: number,
+    timeLimitStarted: Record<number, Date>,
+    timeLimitEnded: Record<number, boolean>,
 }
 
 type SessionEvent = {
     event: 'changeQuestion',
     from: number,
     to: number,
+} | {
+    event: 'startQuestion',
+    question: number,
+} | {
+    event: 'finishQuestion',
+    question: number,
 } | {
     event: 'changeAnswer',
     question: number,

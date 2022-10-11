@@ -285,6 +285,9 @@ export const questionGrade = (question: QuizQuestion, answer: SessionAnswer): nu
             case 'numerical': {
                 console.error('unimplemented: question grade (numerical)');
             }
+            case 'memory_game': {
+                console.error('unimplemented: question grade (memory_game)');
+            }
         }
     } else {
 

@@ -1,5 +1,6 @@
 import { moodleFixHtml } from '@/lib/util';
 import { Field, useField } from 'formik';
+import ReactMarkdown from 'react-markdown';
 import MarkdownField from '../markdown_field';
 
 interface DescriptionQuestionBuilderProps {
@@ -27,8 +28,17 @@ interface DescriptionQuestionProps {
 
 export const DescriptionQuestion: React.FC<DescriptionQuestionProps> = ({ content }) => {
     return (
-        <div className="m-2 p-2 bg-white">
-            <div dangerouslySetInnerHTML={{ __html: moodleFixHtml(content.label.text, content.label.image) }} />
+        <div className="m-2 p-2">
+            {
+                content.source === 'moodle' ?
+                    <div className="bg-white" dangerouslySetInnerHTML={{ __html: moodleFixHtml(content.label.text, content.label.image) }} />
+                    :
+                    <div className="prose prose-invert">
+                        <ReactMarkdown>
+                            {content.description}
+                        </ReactMarkdown>
+                    </div>
+            }
         </div>
     );
 }

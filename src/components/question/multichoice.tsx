@@ -25,6 +25,17 @@ const MultiChoiceQuestionResponse: React.FC<MultiChoiceQuestionResponseProps> = 
                     id={`content-answers-${index}-text`}
                     name={`content.answers.${index}.text`}
                     type="text"
+                />
+            </div>
+            <div className="flex flex-col gap-1">
+                <label htmlFor={`content-answers-${index}-image`}>
+                    Answer {index + 1} Image Url
+                </label>
+                <Field
+                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                    id={`content-answers-${index}-image`}
+                    name={`content.answers.${index}.image`}
+                    type="text"
                     validate={(): null => null}
                 />
             </div>
@@ -43,7 +54,7 @@ const MultiChoiceQuestionResponse: React.FC<MultiChoiceQuestionResponseProps> = 
                     />
 
                     <div className="flex items-center">
-                        <Button action={() => remove()}>
+                        <Button action={() => remove()} type='button'>
                             <FontAwesomeIcon icon={faTrashCan} />
                         </Button>
                     </div>
@@ -71,7 +82,19 @@ export const MultiChoiceQuestionBuilder: React.FC<MultiChoiceQuestionBuilderProp
                 />
             </div>
             <div className="flex flex-col gap-1">
-                <label htmlFor="content-description">
+                <label htmlFor="content-single">
+                    Accept only one answer
+                </label>
+                <div>
+                    <Field
+                        id={`content-single`}
+                        name={`content.single`}
+                        type="checkbox"
+                    />
+                </div>
+            </div>
+            <div className="flex flex-col gap-1">
+                <label htmlFor="content-answers">
                     Answers
                 </label>
                 <FieldArray
@@ -93,7 +116,7 @@ export const MultiChoiceQuestionBuilder: React.FC<MultiChoiceQuestionBuilderProp
                                     />
                                 ))
                             }
-                            <Button action={() => helpers.push({})}>Add answer</Button>
+                            <Button action={() => helpers.push({ text: '', image: '', score: 0 })} type='button'>Add answer</Button>
                         </div>)}
                 />
 
@@ -106,27 +129,28 @@ interface MultiChoiceQuestionProps {
     content: any,
     attribution?: string,
     answer?: SessionAnswer,
+    canChangeAnswer?: boolean,
     changeAnswer?: (answer: SessionAnswer) => void,
 }
 
-export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ content, answer, changeAnswer }) => {
+export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ content, answer, canChangeAnswer, changeAnswer }) => {
     const [selected, setSelected] = useState<number | number[]>(undefined);
 
     useEffect(() => {
         if (answer && changeAnswer && answer.type === 'multichoice' && (!selected || answer.answer !== selected)) {
             setSelected(answer.answer);
-        } else if (!answer) {
+        } else if (!answer && changeAnswer) {
             setSelected(undefined);
         }
     }, [answer]);
 
     return (
-        <div className="m-2 p-2 bg-white">
+        <div className="m-2 p-2">
             {
                 content.source === 'moodle' ?
-                    <div dangerouslySetInnerHTML={{ __html: moodleFixHtml(content.label.text, content.label.image) }} />
+                    <div className="bg-white" dangerouslySetInnerHTML={{ __html: moodleFixHtml(content.label.text, content.label.image) }} />
                     :
-                    <div>
+                    <div className="prose prose-invert">
                         <ReactMarkdown>
                             {content.description}
                         </ReactMarkdown>
@@ -134,7 +158,7 @@ export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ conten
             }
 
             <div>
-                <div className="space-y-2">
+                <div className="space-y-2 pt-4">
                     {
                         content.answers.map((value: any, index: number) => {
                             const checked = selected &&
@@ -145,9 +169,11 @@ export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ conten
                                 <div
                                     key={`answer-${index}`}
                                     onClick={() => {
+                                        if (canChangeAnswer === false) return;
+
                                         if (content.single) {
-                                            setSelected(value);
-                                            changeAnswer({
+                                            setSelected(index);
+                                            changeAnswer && changeAnswer({
                                                 type: 'multichoice',
                                                 answer: index,
                                             });
@@ -156,21 +182,21 @@ export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ conten
                                                 if (checked) {
                                                     const selection = (selected as number[]).filter(i => i !== index);
                                                     setSelected(selection);
-                                                    changeAnswer({
+                                                    changeAnswer && changeAnswer({
                                                         type: 'multichoice',
                                                         answer: selection,
                                                     });
                                                 } else {
                                                     const selection = [...selected as number[], index];
                                                     setSelected(selection);
-                                                    changeAnswer({
+                                                    changeAnswer && changeAnswer({
                                                         type: 'multichoice',
                                                         answer: selection,
                                                     });
                                                 }
                                             } else {
                                                 setSelected([index]);
-                                                changeAnswer({
+                                                changeAnswer && changeAnswer({
                                                     type: 'multichoice',
                                                     answer: [index],
                                                 });
@@ -188,10 +214,18 @@ export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ conten
                                     <div className="flex w-full items-center justify-between">
                                         <div className="flex items-center">
                                             <div className="text-sm">
-                                                <p
-                                                    className={`font-medium  ${checked ? 'text-white' : 'text-gray-900'}`}
-                                                    dangerouslySetInnerHTML={{ __html: moodleFixHtml(value.text, value.image) }}
-                                                />
+                                                {
+                                                    content.source === 'moodle' ?
+                                                        <p
+                                                            className={`font-medium  ${checked ? 'text-white' : 'text-gray-900'}`}
+                                                            dangerouslySetInnerHTML={{ __html: moodleFixHtml(value.text, value.image) }}
+                                                        />
+                                                        :
+                                                        <p>
+                                                            {value.text}
+                                                            {value.image && <img src={value.image} className="max-h-24" />}
+                                                        </p>
+                                                }
                                                 <span
                                                     className="inline"
                                                 >

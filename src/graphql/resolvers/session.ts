@@ -89,7 +89,8 @@ export const Session = {
                         break;
                     }
                     case 'multichoice':
-                    case 'numerical': {
+                    case 'numerical':
+                    case 'memory_game': {
                         const answer = answers[`${i}`];
                         if (answer) {
                             grade += questionGrade(question, answer) / 100;

@@ -61,7 +61,7 @@ export const GetQuizzesQuery = gql`
     }
 `;
 
-const CreateQuestionMutation = gql`
+export const CreateQuestionMutation = gql`
     mutation($type: String!, $name: String!, $category: String!, $content: JSON!, $attribution: String) {
         createQuestion(type: $type, name: $name, category: $category, content: $content, attribution: $attribution) {
             id
@@ -282,6 +282,7 @@ const QuizList: NextPage = ({ }) => {
             <QuestionCreator
                 isOpen={questionCreatorOpen}
                 setIsOpen={setQuestionCreatorOpen}
+                doRefetch={() => refetch()}
             />
         </main>
     );

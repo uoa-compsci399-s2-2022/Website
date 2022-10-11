@@ -1,3 +1,5 @@
+import { CreateQuestionMutation } from '@/pages/quiz/list';
+import { gql, useMutation } from '@apollo/client';
 import { faCheckCircle } from '@fortawesome/free-regular-svg-icons';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,18 +11,21 @@ import Button from "../button";
 import { LoadingSpinner } from '../loading';
 import { Modal } from '../modal';
 import { DescriptionQuestionBuilder } from './description';
+import { MemoryGameQuestionBuilder } from './memory_game';
 import { MultiChoiceQuestionBuilder } from './multichoice';
 
 const TypeNames: Record<QuestionType, string> = {
     'description': 'Description',
     'multichoice': 'Multi-choice',
-    'numerical': 'Numerical'
+    'numerical': 'Numerical',
+    'memory_game': 'Memory Game',
 }
 
 const TypeBuilders: Record<QuestionType, ReactElement> = {
     'description': <DescriptionQuestionBuilder />,
     'multichoice': <MultiChoiceQuestionBuilder />,
-    'numerical': <DescriptionQuestionBuilder />
+    'numerical': <DescriptionQuestionBuilder />,
+    'memory_game': <MemoryGameQuestionBuilder />,
 }
 
 interface CategorySelectorProps {
@@ -115,6 +120,7 @@ const TypeSelector: React.FC = () => {
 interface QuestionCreatorProps {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
+    doRefetch: () => void,
 }
 
 interface FormValues {
@@ -125,7 +131,9 @@ interface FormValues {
     attribution: string,
 }
 
-export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ isOpen, setIsOpen }) => {
+export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ isOpen, setIsOpen, doRefetch }) => {
+    const [createQuestion] = useMutation(CreateQuestionMutation);
+
     return (
         <Modal
             isOpen={isOpen}
@@ -134,8 +142,24 @@ export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ isOpen, setIsO
         >
             <Formik
                 initialValues={{ name: '', type: 'description', category: '', content: {}, attribution: '' } as FormValues}
-                onSubmit={({ name, type, category, content, attribution }, { setSubmitting, setStatus }) => {
-
+                onSubmit={async (question, { setSubmitting, setStatus, resetForm }) => {
+                    try {
+                        await createQuestion({
+                            variables: {
+                                ...question
+                            }
+                        });
+                        setSubmitting(false);
+                        resetForm();
+                        setIsOpen(false);
+                        doRefetch();
+                    } catch (error) {
+                        setStatus({
+                            submitError: error.toString(),
+                        });
+                        console.error(error);
+                        setSubmitting(false);
+                    }
                 }}
             >
                 {({ isSubmitting, isValidating, isValid, validateForm, status, values }) => {
