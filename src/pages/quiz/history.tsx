@@ -95,16 +95,13 @@ const QuizHistory: NextPage = () => {
             <CardContainer>
 
                 {
-                    quizAssignments.map((assignment) => {
-                        console.log(assignment);
-                        return (
-                            <QuizCard
-                                key={`quiz-${assignment.id}`}
-                                quiz={assignment.quiz}
-                                assignment={assignment}
-                            />
-                        )
-                    })
+                    quizAssignments.map((assignment) => (
+                        <QuizCard
+                            key={`quiz-${assignment.id}`}
+                            quiz={assignment.quiz}
+                            assignment={assignment}
+                        />
+                    ))
                 }
             </CardContainer>
         </div>

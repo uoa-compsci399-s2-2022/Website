@@ -161,7 +161,7 @@ const CategoryComponent: React.FC<CategoryComponentProps> = ({ name, category, c
                                                 <Link href={`/quiz/preview/${question.id}`} passHref>
                                                     <a target="_blank" rel="noopener noreferrer">
                                                         <FontAwesomeIcon
-                                                            className={`${selectMultiple ? 'smr-4 ' : ''}cursor-pointer`}
+                                                            className={`${selectMultiple ? 'mr-4 ' : ''}cursor-pointer`}
                                                             icon={faEye}
                                                             title="View/Edit"
                                                         />

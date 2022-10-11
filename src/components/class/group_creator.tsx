@@ -70,7 +70,7 @@ const GroupTypeField: React.FC<GroupTypeFieldProps> = ({ students, setFieldValue
                         /> : <p>This class has no students.</p>
                     }
                 ]}
-                defaultIndex={0}
+                defaultIndex={meta.value ? 0 : 1}
                 onChange={(index) => {
                     helper.setValue(index === 0);
                     setFieldValue('students', []);
@@ -116,6 +116,8 @@ export const GroupCreator: React.FC<GroupCreatorProps> = ({ isOpen, setIsOpen, d
         passcode: '',
         students: []
     }
+
+    console.log(initialValues);
 
     return (
         <Modal

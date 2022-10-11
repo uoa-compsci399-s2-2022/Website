@@ -115,10 +115,10 @@ export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ conten
     useEffect(() => {
         if (answer && changeAnswer && answer.type === 'multichoice' && (!selected || answer.answer !== selected)) {
             setSelected(answer.answer);
+        } else if (!answer) {
+            setSelected(undefined);
         }
     }, [answer]);
-
-    console.log(selected);
 
     return (
         <div className="m-2 p-2 bg-white">
@@ -137,7 +137,10 @@ export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ conten
                 <div className="space-y-2">
                     {
                         content.answers.map((value: any, index: number) => {
-                            const checked = Array.isArray(selected) ? selected.filter(a => a === index).length > 0 : index === selected;
+                            const checked = selected &&
+                                Array.isArray(selected) ?
+                                selected.filter(a => a === index).length > 0 :
+                                index === selected;
                             return (
                                 <div
                                     key={`answer-${index}`}

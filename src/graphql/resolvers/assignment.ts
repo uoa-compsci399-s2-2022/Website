@@ -5,7 +5,7 @@ import { ProtectQuery } from '../resolvers';
 export const Assignment = {
     typeDefs: gql`
         extend type Query {
-            assignment(quiz: String!): QuizAssignment
+            assignment(id: String!): QuizAssignment
             upcomingQuizzes: [QuizAssignment!]!
             previousQuizzes: [QuizAssignment!]!
         }
@@ -30,24 +30,41 @@ export const Assignment = {
         }
     `,
     queries: {
-        assignment: (_parent: any, arg: { quiz: string }, context: Context) => {
+        assignment: (_parent: any, arg: { id: string }, context: Context) => {
             ProtectQuery(context, true);
 
-            let findParams = {}
+            let findParams = [];
             if (context.session.user.group) {
-                findParams = {
-                    groupId: context.session.user.uid,
-                };
+                findParams = [
+                    {
+                        groupId: context.session.user.uid,
+                    }
+                ];
             } else {
-                findParams = {
-                    studentId: context.session.user.uid,
-                };
+                findParams = [
+                    {
+                        studentId: context.session.user.uid,
+                    },
+                    {
+                        group: {
+                            students: {
+                                some: {
+                                    id: context.session.user.uid,
+                                }
+                            }
+                        }
+                    }
+                ];
             }
 
             return context.prisma.quizAssignment.findFirst({
                 where: {
-                    quizId: arg.quiz,
-                    ...findParams,
+                    OR: [
+                        ...findParams,
+                    ],
+                    AND: {
+                        id: arg.id,
+                    }
                 },
                 include: {
                     quiz: true,
@@ -67,7 +84,20 @@ export const Assignment = {
                 };
             } else {
                 findParams = {
-                    studentId: context.session.user.uid,
+                    OR: [
+                        {
+                            studentId: context.session.user.uid,
+                        },
+                        {
+                            group: {
+                                students: {
+                                    some: {
+                                        id: context.session.user.uid,
+                                    }
+                                }
+                            }
+                        }
+                    ],
                 };
             }
 
@@ -96,7 +126,20 @@ export const Assignment = {
                 };
             } else {
                 findParams = {
-                    studentId: context.session.user.uid,
+                    OR: [
+                        {
+                            studentId: context.session.user.uid,
+                        },
+                        {
+                            group: {
+                                students: {
+                                    some: {
+                                        id: context.session.user.uid,
+                                    }
+                                }
+                            }
+                        }
+                    ],
                 };
             }
 

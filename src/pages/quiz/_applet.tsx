@@ -10,6 +10,7 @@ import { MultiChoiceQuestion } from '@/components/question/multichoice';
 import Button from '@/components/button';
 import ReactMarkdown from 'react-markdown';
 import { zeroPad } from '@/lib/util';
+import { LoadingSpinner } from '@/components/loading';
 
 export const GetQuizNoAnswersQuery = gql`
     query($id: String!) {
@@ -36,11 +37,14 @@ export const GetQuizNoAnswersQuery = gql`
 `;
 
 export const AssignmentQuery = gql`
-    query($quiz: String!) {
-        assignment(quiz: $quiz) {
+    query($id: String!) {
+        assignment(id: $id) {
             id
             start
             end
+            quiz {
+                id
+            }
             sessions {
                 id
                 start
@@ -273,13 +277,32 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
     const [setStateMutation] = useMutation(SetStateMutation);
     const [pushEventMutation] = useMutation(PushEventMutation);
     const [changeAnswerMutation] = useMutation(ChangeAnswerMutation);
+    const [saving, setSaving] = useState(false);
+    const [disableControls, setDisableControls] = useState(false);
 
-    const updateState = (update: any) => {
+    const onUnload = (e: any): string | undefined => {
+        if (!saving) {
+            return undefined;
+        }
+        let confirmationMessage = 'We are still saving your changes.  Please wait.';
+
+        (e || window.event).returnValue = confirmationMessage;
+        return confirmationMessage;
+    };
+
+    useEffect(() => {
+        window.addEventListener('beforeunload', onUnload);
+
+        return () => window.removeEventListener('beforeunload', onUnload);
+    }, []);
+
+    const updateState = async (update: any) => {
         setState(state => {
             const next = {
                 ...state,
                 ...update,
             };
+
             setStateMutation({
                 variables: {
                     id: session.id,
@@ -304,7 +327,7 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
         updateState({ question });
     }
 
-    const changeAnswer = (to: SessionAnswer) => {
+    const changeAnswer = async (to: SessionAnswer) => {
         let from = undefined;
         if (`${state.question}` in answers) {
             from = answers[`${state.question}`];
@@ -317,7 +340,9 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                 ...newAnswer,
             }
         });
-        pushEventMutation({
+
+        setSaving(true);
+        await Promise.all([pushEventMutation({
             variables: {
                 id: session.id,
                 event: {
@@ -327,14 +352,14 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                     to,
                 } as SessionEvent,
             }
-        })
-        changeAnswerMutation({
+        }), changeAnswerMutation({
             variables: {
                 id: session.id,
                 key: `${state.question}`,
                 answer: to,
             }
-        })
+        })]);
+        setSaving(false);
     }
 
     return (
@@ -348,7 +373,7 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                 <QuestionView
                     question={quiz.questions[state.question].quizQuestion}
                     state={state}
-                    answer={answers[`${state.question}`]}
+                    answer={answers[`${state.question}`] ?? undefined}
                     updateState={updateState}
                     changeAnswer={changeAnswer}
                     pushEvent={(event) => {
@@ -366,7 +391,7 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                     action={() => {
                         setQuestion(state.question - 1);
                     }}
-                    disabled={state.question <= 0}
+                    disabled={state.question <= 0 || saving || disableControls}
                     theme='solid'
                 >
                     &lt;
@@ -384,21 +409,25 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                     action={() => {
                         setQuestion(state.question + 1);
                     }}
-                    disabled={state.question >= quiz.questions.length - 1}
+                    disabled={state.question >= quiz.questions.length - 1 || saving || disableControls}
                     theme='solid'
                 >
                     &gt;
                 </Button>
             </div>
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-4 items-center gap-2">
                 <Button
                     action={() => {
                         finishQuiz()
                     }}
                     theme="solid"
+                    disabled={saving}
                 >
                     Submit
                 </Button>
+                {
+                    saving && <LoadingSpinner />
+                }
             </div>
         </div>
     )
@@ -443,8 +472,6 @@ const FinishState: React.FC<FinishStateProps> = ({ quiz, session }) => {
         }
     });
 
-    console.log(data);
-
     return (<div>
         <div className="max-w-md mx-auto rounded-lg bg-slate-600 my-4">
             <h1
@@ -473,9 +500,10 @@ type AppletStates = 'info' | 'start' | 'in-quiz' | 'finish';
 
 interface QuizAppletProps {
     id: string,
+    assignmentId: string,
 }
 
-const QuizApplet: React.FC<QuizAppletProps> = ({ id }) => {
+const QuizApplet: React.FC<QuizAppletProps> = ({ id, assignmentId }) => {
     const { data: authSession, status } = useSession();
     const [appletState, setAppletState] = useState<AppletStates>('start');
     const [loading, setLoading] = useState(true);
@@ -483,6 +511,7 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id }) => {
     const [finishSessionMutation] = useMutation(FinishSessionMutation);
     const [setStateMutation] = useMutation(SetStateMutation);
     const [session, setSession] = useState<QuizSession | null>(null);
+    const [info, setInfo] = useState({ title: '', description: '' });
     const { data: quizData } = useQuery(GetQuizNoAnswersQuery, {
         variables: {
             id
@@ -490,7 +519,7 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id }) => {
     });
     const { data: assignmentData } = useQuery(AssignmentQuery, {
         variables: {
-            quiz: id
+            id: assignmentId
         }
     });
 
@@ -540,6 +569,14 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id }) => {
             } else {
                 setAppletState('in-quiz');
             }
+        } else if (new Date(assignment.end).getTime() - new Date().getTime() < 0) {
+            console.log(assignment.end);
+            console.log({ 'a': new Date(assignment.end).getTime(), 'b': new Date().getTime() })
+            setAppletState('info');
+            setInfo({
+                title: 'Too late!',
+                description: 'You have missed the due date for this quiz',
+            });
         }
     }, [session])
 
@@ -612,6 +649,7 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id }) => {
         case 'start': return <StartState quiz={quiz} startQuiz={startQuiz} />;
         case 'in-quiz': return <InQuizState quiz={quiz} session={session} finishQuiz={finishQuiz} />;
         case 'finish': return <FinishState quiz={quiz} session={session} />;
+        case 'info': return <InfoState title={info.title} description={info.description} />
     }
 
     return <InfoState title="Error" description='Invalid quiz state.  Please refresh the page.' />;

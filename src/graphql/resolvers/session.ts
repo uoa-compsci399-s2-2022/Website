@@ -7,8 +7,8 @@ import { ProtectQuery } from '../resolvers';
 export const Session = {
     typeDefs: gql`
         type QuizGrade {
-            grade: Int,
-            graded: Int,
+            grade: Float,
+            graded: Float,
         }
 
         extend type Query {

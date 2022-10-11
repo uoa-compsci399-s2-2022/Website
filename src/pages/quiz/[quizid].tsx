@@ -29,18 +29,36 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 }
             });
         } else {
-            await apolloClient.query({
+            const { data } = await apolloClient.query({
                 query: AssignmentQuery,
                 variables: {
-                    quiz: id,
+                    id,
                 }
             });
+
+            if (!data) {
+                return {
+                    props: {},
+                    redirect: {
+                        permanent: false,
+                        destination: '/',
+                    }
+                }
+            }
 
             await apolloClient.query({
                 query: GetQuizNoAnswersQuery,
                 variables: {
-                    id,
+                    id: data.assignment.quiz.id,
                 }
+            });
+
+
+            return addApolloState(apolloClient, {
+                props: {
+                    id: data.assignment.quiz.id,
+                    assignmentId: id,
+                },
             });
         }
 
@@ -62,9 +80,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 interface QuizProps {
     id: string,
+    assignmentId?: string,
 }
 
-const Quiz: NextPage<QuizProps> = ({ id }) => {
+const Quiz: NextPage<QuizProps> = ({ id, assignmentId }) => {
     const { data: session, status } = useSession()
     const loading = status === "loading";
 
@@ -78,6 +97,7 @@ const Quiz: NextPage<QuizProps> = ({ id }) => {
             session && session.user && isStudent(session) ?
                 <QuizApplet
                     id={id}
+                    assignmentId={assignmentId}
                 /> :
                 <QuizEditor
                     id={id}
