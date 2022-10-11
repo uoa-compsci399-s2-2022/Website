@@ -48,7 +48,7 @@ const InstructorsField: React.FC = () => {
                                 <div className="flex gap-2 ">
                                     <Field
                                         id={`instructors.${index}`}
-                                        className="outline outline-1 focus:outline-2 rounded w-full p-2 text-text-colour"
+                                        className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                         name={`instructors.${index}`}
                                         type="text"
                                         validate={validateEmail}
@@ -133,7 +133,7 @@ export const ClassEditor: React.FC<ClassEditorProps> = ({ isOpen, setIsOpen, doR
                                 </label>
                                 <Field
                                     id="name"
-                                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                     name="name"
                                     type="text"
                                 />
