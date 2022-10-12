@@ -206,9 +206,9 @@ export const MultiChoiceQuestion: React.FC<MultiChoiceQuestionProps> = ({ conten
                                     className={
                                         `${checked ?
                                             'bg-sky-900 bg-opacity-75 text-white' :
-                                            'bg-white border border-border hover:bg-gray-200'
-                                        } relative flex cursor-pointer rounded-lg px-5 py-4 
-                                        shadow-md border border-border focus:outline-none hover:bg-gray-200`
+                                            'bg-white border border-border hover:bg-gray-300'
+                                        } relative flex grow cursor-pointer rounded-lg px-5 py-4 
+                                        shadow-md border border-border focus:outline-none `
                                     }
                                 >
                                     <div className="flex w-full items-center justify-between">

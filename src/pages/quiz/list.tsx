@@ -220,7 +220,7 @@ const QuizList: NextPage = ({ }) => {
                             <input
                                 type="text"
                                 placeholder="Search"
-                                className="rounded px-2"
+                                className="rounded px-2 hidden lg:block"
                                 onChange={(event) => {
                                     setQuestionSearch(event.target.value);
                                 }}
@@ -269,6 +269,14 @@ const QuizList: NextPage = ({ }) => {
                                     </p>}
                                 </>
                             }
+                            <input
+                                type="text"
+                                placeholder="Search"
+                                className="rounded px-2 block sm:hidden"
+                                onChange={(event) => {
+                                    setQuestionSearch(event.target.value);
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
