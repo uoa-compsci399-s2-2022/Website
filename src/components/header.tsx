@@ -41,7 +41,7 @@ const AccountControls: React.FC<AccountControlsProps> = ({ session }) => {
     }
 
     return (
-        <Menu as="div" className="relative inline-block text-left">
+        <Menu as="div" className="relative inline-block text-left z-50">
             <div>
                 <Menu.Button className="inline-flex justify-center w-full rounded-md border border-gray-900 shadow-sm px-4 py-2 bg-accent text-sm font-medium text-text-colour hover:bg-accent/[0.85] focus:outline-none">
                     {session.user?.name}

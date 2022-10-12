@@ -20,7 +20,7 @@ const ImportQuestions: React.FC<ImportProps> = ({ onImport }) => {
             ' block px-4 py-2 text-sm';
     }
 
-    return <div className="flex gap-2 items-center">
+    return <div className="flex gap-2 items-center z-40">
         <Menu as="div" className="relative inline-block text-left">
             <div>
                 <Menu.Button className="inline-flex justify-center w-full rounded-md shadow-sm px-4 py-2 bg-accent text-sm font-medium text-text-colour hover:bg-accent/[0.85] focus:outline-none">
