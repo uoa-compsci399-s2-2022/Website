@@ -173,13 +173,14 @@ interface QuestionViewProps {
     state: SessionState,
     answer?: SessionAnswer,
     canChangeAnswer: boolean,
+    quizId: string,
     setDisableControls: (disableControls: boolean) => void,
     updateState: (update: any) => void,
     changeAnswer: (answer: SessionAnswer) => void,
     pushEvent: (event: SessionEvent) => void,
 }
 
-const QuestionView: React.FC<QuestionViewProps> = ({ question, state, answer, canChangeAnswer, setDisableControls, updateState, changeAnswer, pushEvent }) => {
+const QuestionView: React.FC<QuestionViewProps> = ({ question, state, answer, canChangeAnswer, quizId, setDisableControls, updateState, changeAnswer, pushEvent }) => {
 
     let content = (<></>);
 
@@ -209,6 +210,7 @@ const QuestionView: React.FC<QuestionViewProps> = ({ question, state, answer, ca
                 content={question.content}
                 state={state}
                 answer={answer}
+                quizId={quizId}
                 setDisableControls={setDisableControls}
                 updateState={updateState}
                 changeAnswer={changeAnswer}
@@ -342,7 +344,7 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
     const [disableControls, setDisableControls] = useState(false);
 
     const onUnload = (e: any): string | undefined => {
-        if (!saving) {
+        if (!saving || !disableControls) {
             return undefined;
         }
         let confirmationMessage = 'We are still saving your changes.  Please wait.';
@@ -507,6 +509,7 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                             state={state}
                             answer={answers[`${state.question}`] ?? undefined}
                             canChangeAnswer={!(quiz.questions[state.question].timeLimit > 0 && state.timeLimitEnded[state.question])}
+                            quizId={quiz.id}
                             setDisableControls={setDisableControls}
                             updateState={updateState}
                             changeAnswer={changeAnswer}
@@ -740,6 +743,8 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id, assignmentId }) => {
                     question: 0,
                     timeLimitStarted: {},
                     timeLimitEnded: {},
+                    memoryGameStarted: {},
+                    memoryGameFinished: {},
                 }
                 const { data: updatedData } = await setStateMutation({
                     variables: {

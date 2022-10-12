@@ -96,7 +96,7 @@ const QuestionPreview: NextPage<QuestionPreviewProps> = ({ id }) => {
             break;
         };
         case 'memory_game': {
-            content = <MemoryGameQuestion content={question.content} />
+            content = <MemoryGameQuestion content={question.content} quizId="fixed seed" />
         }
     }
 

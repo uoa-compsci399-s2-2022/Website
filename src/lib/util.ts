@@ -274,12 +274,18 @@ export const questionGrade = (question: QuizQuestion, answer: SessionAnswer): nu
                 return 0;
             }
             case 'multichoice': {
-                if (content.single) {
+                if (answer.type !== 'multichoice') {
+                    return;
+                }
+                if (content.single && typeof answer.answer === 'number') {
                     return content.answers[answer.answer].score;
-                } else {
+                } else if (Array.isArray(answer.answer)) {
                     return answer.answer
                         .map((ans: number) => parseInt(content.answers[ans].score))
                         .reduce((a: number, b: number) => a + b, 0);
+                } else {
+                    console.error('Error - mismatched question type and answer');
+                    return 0;
                 }
             }
             case 'numerical': {

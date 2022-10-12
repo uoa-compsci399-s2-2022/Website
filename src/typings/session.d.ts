@@ -9,6 +9,8 @@ interface SessionState {
     question: number,
     timeLimitStarted: Record<number, Date>,
     timeLimitEnded: Record<number, boolean>,
+    memoryGameStarted: Record<number, boolean>,
+    memoryGameFinished: Record<number, boolean>,
 }
 
 type SessionEvent = {
@@ -36,6 +38,5 @@ type SessionAnswer = {
     answer: string,
 } | {
     type: 'memory_game',
-    /* TODO: answer: memory_game_state */
-    answer: any,
+    score: number,
 }
