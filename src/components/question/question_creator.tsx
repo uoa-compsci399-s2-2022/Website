@@ -42,7 +42,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ }) => {
             </label>
             <Field
                 id="category"
-                className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                 name="category"
                 type="text"
             />
@@ -68,7 +68,7 @@ const TypeSelector: React.FC = () => {
                 Type
             </label>
             <Listbox value={meta.value} onChange={onChange}>
-                <div className="relative">
+                <div className="relative text-black">
                     <Listbox.Button className="relative w-full cursor-pointer bg-white p-2 text-left outline outline-1 focus:outline-2 rounded">
                         <span className="block truncate">{TypeNames[meta.value as QuestionType]}</span>
                         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -173,7 +173,7 @@ export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ isOpen, setIsO
                                 </label>
                                 <Field
                                     id="name"
-                                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                     name="name"
                                     type="text"
                                 />
@@ -191,7 +191,7 @@ export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ isOpen, setIsO
                                 </label>
                                 <Field
                                     id="attribution"
-                                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                     name="attribution"
                                     type="text"
                                 />

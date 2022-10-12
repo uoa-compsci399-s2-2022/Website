@@ -98,7 +98,7 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({ isOpen, setIsOpen, edi
                                 </label>
                                 <Field
                                     id="name"
-                                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                     name="name"
                                     type="text"
                                 />
@@ -120,7 +120,7 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({ isOpen, setIsOpen, edi
                                         </label>
                                         <Field
                                             id="questions"
-                                            className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                                            className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                             name="questions"
                                             type="number"
                                         />
@@ -133,7 +133,7 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({ isOpen, setIsOpen, edi
                                 </label>
                                 <Field
                                     id="timeLimit"
-                                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                     name="timeLimit"
                                     type="number"
                                 />

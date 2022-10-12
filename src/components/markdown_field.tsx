@@ -24,7 +24,7 @@ const MarkdownField: React.FC<MarkdownFieldProps> = ({ id, name }) => {
                         component="textarea"
                         rows="6"
                         id={id}
-                        className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                        className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                         name={name}
                     />
             }
