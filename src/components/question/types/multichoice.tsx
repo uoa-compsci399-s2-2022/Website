@@ -1,12 +1,12 @@
 import { moodleFixHtml } from '@/lib/util';
 import { faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { RadioGroup } from '@headlessui/react';
+import { QuizQuestion } from '@prisma/client';
 import { Field, FieldArray, useField } from 'formik';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import Button from '../button';
-import MarkdownField from '../markdown_field';
+import Button from '../../button';
+import MarkdownField from '../../markdown_field';
 
 interface MultiChoiceQuestionResponseProps {
     index: number,
@@ -21,7 +21,7 @@ const MultiChoiceQuestionResponse: React.FC<MultiChoiceQuestionResponseProps> = 
                     Answer {index + 1}
                 </label>
                 <Field
-                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                     id={`content-answers-${index}-text`}
                     name={`content.answers.${index}.text`}
                     type="text"
@@ -32,7 +32,7 @@ const MultiChoiceQuestionResponse: React.FC<MultiChoiceQuestionResponseProps> = 
                     Answer {index + 1} Image Url
                 </label>
                 <Field
-                    className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                     id={`content-answers-${index}-image`}
                     name={`content.answers.${index}.image`}
                     type="text"
@@ -46,7 +46,7 @@ const MultiChoiceQuestionResponse: React.FC<MultiChoiceQuestionResponseProps> = 
 
                 <div className="flex align-center gap-2">
                     <Field
-                        className="outline outline-1 focus:outline-2 rounded w-full p-2"
+                        className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                         id={`content-answers-${index}-grade`}
                         name={`content.answers.${index}.score`}
                         type="number"
@@ -260,4 +260,19 @@ const CheckIcon: React.FC<{ className?: string }> = ({ className }) => {
             />
         </svg>
     )
+}
+
+export const gradeMultiChoice = (question: QuizQuestion, answer: SessionAnswer & { type: 'multichoice' }): number | undefined => {
+    const content = question.content as any;
+
+    if (content.single && typeof answer.answer === 'number') {
+        return content.answers[answer.answer].score;
+    } else if (Array.isArray(answer.answer)) {
+        return answer.answer
+            .map((ans: number) => parseInt(content.answers[ans].score))
+            .reduce((a: number, b: number) => a + b, 0);
+    } else {
+        console.error('Error - mismatched question type and answer');
+        return 0;
+    }
 }

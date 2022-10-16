@@ -1,32 +1,15 @@
 import { CreateQuestionMutation } from '@/pages/quiz/list';
-import { gql, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { faCheckCircle } from '@fortawesome/free-regular-svg-icons';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Dialog, Listbox, Transition } from "@headlessui/react";
+import { Listbox, Transition } from "@headlessui/react";
 import { Field, Form, Formik, useField } from "formik";
-import { useRouter } from "next/router";
-import React, { Dispatch, Fragment, ReactElement, SetStateAction } from "react";
+import React, { Dispatch, Fragment, SetStateAction } from "react";
 import Button from "../button";
 import { LoadingSpinner } from '../loading';
 import { Modal } from '../modal';
-import { DescriptionQuestionBuilder } from './description';
-import { MemoryGameQuestionBuilder } from './memory_game';
-import { MultiChoiceQuestionBuilder } from './multichoice';
-
-const TypeNames: Record<QuestionType, string> = {
-    'description': 'Description',
-    'multichoice': 'Multi-choice',
-    'numerical': 'Numerical',
-    'memory_game': 'Memory Game',
-}
-
-const TypeBuilders: Record<QuestionType, ReactElement> = {
-    'description': <DescriptionQuestionBuilder />,
-    'multichoice': <MultiChoiceQuestionBuilder />,
-    'numerical': <DescriptionQuestionBuilder />,
-    'memory_game': <MemoryGameQuestionBuilder />,
-}
+import { TypeBuilders, TypeNames } from './question_type';
 
 interface CategorySelectorProps {
 

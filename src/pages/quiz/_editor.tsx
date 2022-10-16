@@ -3,12 +3,17 @@
  **/
 import React, { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { gql, useMutation, useQuery } from '@apollo/client';
+import { gql, useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import { Quiz, QuizAssignment, QuizQuestion, QuizQuestionLink } from '@prisma/client';
 import Button from '@/components/button';
 import { Modal } from '@/components/modal';
 import { QuestionAssigner } from '@/components/quiz/question_assigner';
 import { QuizCreator } from '@/components/quiz/quiz_creator';
+import { TypeNames } from '@/components/question/question_type';
+import { useRouter } from 'next/router';
+import { GetQuestionQuery } from './preview/[questionid]';
+import { LoadingSpinner } from '@/components/loading';
+import { saveFileAsString } from '@/lib/util';
 
 export const GetQuizQuery = gql`
     query($id: String!) {
@@ -24,16 +29,9 @@ export const GetQuizQuery = gql`
                 quizQuestion {
                     id
                     name
+                    type
                 }
             }
-        }
-    }
-`;
-
-export const UpdateQuizQuestionMutation = gql`
-    mutation($linkId: String!, $questionId: String, $timeLimit: Int) {
-        updateQuizQuestion(linkId: $linkId, questionId: $questionId, timeLimit: $timeLimit) {
-            id
         }
     }
 `;
@@ -54,17 +52,32 @@ const RemoveQuizQuestionMutation = gql`
     }
 `;
 
+const DeleteQuizMutation = gql`
+    mutation($id: String!) {
+        deleteQuiz(id: $id)
+    }
+`;
+
 interface QuizEditorProps {
     id: string,
 }
 
+interface QuestionAssignerState {
+    id: string,
+    initialValues: {
+        questionId: string,
+        timeLimit: number,
+        questionName: string,
+        index: number,
+    }
+}
+
 const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
     const [quizEditorOpen, setQuizEditorOpen] = useState(false);
-    const [timeLimitOpen, setTimeLimitOpen] = useState(false);
-    const [currentTimeLimit, setCurrentTimeLimit] = useState(0);
-    const timeLimitRef = useRef<HTMLInputElement | null>(null);
     const [questionAssignerOpen, setQuestionAssignerOpen] = useState(false);
-    const [questionAssignerId, setQuestionAssignerId] = useState('');
+    const [questionAssignerState, setQuestionAssignerState] = useState<QuestionAssignerState>();
     const [questionAssignerDescription, setQuestionAssignerDescription] = useState('');
     const { data, refetch } = useQuery(GetQuizQuery, {
         variables: {
@@ -76,8 +89,9 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
             id
         }
     });
+    const [getQuestion] = useLazyQuery(GetQuestionQuery);
     const [removeQuizQuestion] = useMutation(RemoveQuizQuestionMutation);
-    const [updateQuizQuestion] = useMutation(UpdateQuizQuestionMutation);
+    const [deleteQuiz] = useMutation(DeleteQuizMutation);
 
     const quiz = data.quiz as Quiz & {
         questions: (QuizQuestionLink & {
@@ -114,19 +128,52 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
         }
     }
 
-    const setQuestionTimeLimit = async (linkId: string, timeLimit: number) => {
-        try {
-            await updateQuizQuestion({
+    const exportQuiz = async () => {
+        setLoading(true);
+        const questions: Record<string, QuizQuestion> = {};
+        for (const questionId of quiz.questions.filter(q => q.quizQuestion !== null).map(q => q.quizQuestion?.id)) {
+            console.log(questionId);
+            const question = await getQuestion({
                 variables: {
-                    linkId,
-                    timeLimit
+                    id: questionId,
                 }
             });
-            refetch();
-            setTimeLimitOpen(false);
+            questions[questionId] = question.data.question;
+        }
+        const outQuiz = {
+            ...quiz,
+            questions: [...quiz.questions]
+        };
+
+        for (let i = 0; i < outQuiz.questions.length; i++) {
+            if (outQuiz.questions[i].quizQuestion?.id in questions) {
+                outQuiz.questions[i] = {
+                    ...outQuiz.questions[i],
+                    quizQuestion: questions[outQuiz.questions[i].quizQuestion.id],
+                };
+            }
+        }
+
+        saveFileAsString(JSON.stringify(outQuiz), "application/json", `quiz-${quiz.name}.json`)
+
+        setLoading(false);
+    }
+
+    const deleteQuizFunc = async () => {
+        setLoading(true);
+        console.log(id);
+        try {
+            await deleteQuiz({
+                variables: {
+                    id,
+                }
+            });
+            await router.push('/quiz/list');
+            router.reload();
         } catch (error) {
             alert(error);
         }
+        setLoading(false);
     }
 
     return <div className="w-4/5 mx-auto pb-4">
@@ -135,12 +182,27 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
                 <h1 className="text-white text-3xl p-2 flex-grow">
                     {quiz.name}
                 </h1>
-                <span>
+                <span className="flex gap-2 items-center">
+                    {
+                        loading && <LoadingSpinner />
+                    }
                     <Button
                         theme='solid'
                         action={() => setQuizEditorOpen(true)}
                     >
                         Edit
+                    </Button>
+                    <Button
+                        theme='solid'
+                        action={() => exportQuiz()}
+                    >
+                        Export
+                    </Button>
+                    <Button
+                        theme='danger'
+                        action={() => deleteQuizFunc()}
+                    >
+                        Delete
                     </Button>
                 </span>
             </div>
@@ -157,28 +219,37 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
             <div className="px-6 pb-6 flex flex-col gap-2">
                 {
                     [...quiz.questions].sort((a, b) => a.index - b.index).map((question, index) => {
-                        return (<div key={`question-${question.id}`}>
-                            <p className="text-white text-md font-bold">Question {index + 1}</p>
+                        return (<div key={`question-${question.id}`} className="my-4 border border-white p-4">
+                            <p className="text-white text-xl font-bold">Question {index + 1}</p>
                             {
                                 question.quizQuestion ? (
                                     <div className="flex flex-col gap-2">
-                                        <p className="text-white">{question.quizQuestion.name}</p>
+                                        <p className="text-white">
+                                            <span className="block">Name: {question.quizQuestion.name}</span>
+                                            <span className="block">Type: {TypeNames[question.quizQuestion.type as QuestionType]}</span>
+                                            {
+                                                question.timeLimit > 0 && <span className="block">
+                                                    Time limit: {question.timeLimit} minutes
+                                                </span>
+                                            }
+                                        </p>
                                         <div className='flex gap-2'>
                                             <Button action={() => {
-                                                setQuestionAssignerId(question.id);
-                                                setQuestionAssignerDescription((index + 1).toString());
-                                                setTimeLimitOpen(true);
-                                            }} theme='solid'>
-                                                {question.timeLimit === 0 ? 'Add' : `Edit ${question.timeLimit} minute`} time limit
-                                            </Button>
-                                            <Button action={() => {
                                                 window.open(`/quiz/preview/${question.quizQuestion.id}`, '_blank').focus();
-                                            }} theme='solid'>View Question</Button>
+                                            }} theme='solid'>Preview</Button>
                                             <Button action={() => {
                                                 setQuestionAssignerDescription((index + 1).toString());
-                                                setQuestionAssignerId(question.id);
+                                                setQuestionAssignerState({
+                                                    id: question.id,
+                                                    initialValues: {
+                                                        questionId: question.quizQuestion?.id,
+                                                        timeLimit: question.timeLimit,
+                                                        index: question.index,
+                                                        questionName: question.quizQuestion.name
+                                                    }
+                                                });
                                                 setQuestionAssignerOpen(true);
-                                            }} theme='solid'>Reassign</Button>
+                                            }} theme='solid'>Modify Question</Button>
                                             <Button action={() => {
                                                 deleteQuestion(question.id);
                                             }} theme='danger'>
@@ -187,15 +258,26 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="py-2 flex gap-2">
-                                        <Button action={() => {
-                                            setQuestionAssignerDescription((index + 1).toString());
-                                            setQuestionAssignerId(question.id);
-                                            setQuestionAssignerOpen(true);
-                                        }} theme='solid'>Assign question</Button>
-                                        <Button action={() => {
-                                            deleteQuestion(question.id);
-                                        }} theme='danger'>Remove</Button>
+                                    <div className="flex flex-col gap-2">
+                                        <p className="text-white">There is no question assigned</p>
+                                        <div className="py-2 flex gap-2">
+                                            <Button action={() => {
+                                                setQuestionAssignerDescription((index + 1).toString());
+                                                setQuestionAssignerState({
+                                                    id: question.id,
+                                                    initialValues: {
+                                                        questionId: question.quizQuestion?.id,
+                                                        timeLimit: question.timeLimit,
+                                                        index: question.index,
+                                                        questionName: question.quizQuestion?.name
+                                                    }
+                                                });
+                                                setQuestionAssignerOpen(true);
+                                            }} theme='solid'>Assign question</Button>
+                                            <Button action={() => {
+                                                deleteQuestion(question.id);
+                                            }} theme='danger'>Remove</Button>
+                                        </div>
                                     </div>
                                 )
                             }
@@ -223,36 +305,9 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
             doRefetch={() => refetch()}
             isOpen={questionAssignerOpen}
             setIsOpen={setQuestionAssignerOpen}
-            linkId={questionAssignerId}
+            linkId={questionAssignerState?.id}
+            initialValues={questionAssignerState?.initialValues}
         />
-        <Modal
-            isOpen={timeLimitOpen}
-            setIsOpen={setTimeLimitOpen}
-            title={`Question ${questionAssignerDescription} time limit`}
-        >
-            <div className="flex flex-col gap-2">
-                <input
-                    type="number"
-                    className="rounded p-2"
-                    ref={timeLimitRef}
-                    value={currentTimeLimit}
-                    onChange={(event) => setCurrentTimeLimit(parseInt(event.target.value))}
-                />
-                <p>Enter a time limit in minutes, or 0 for no time limit.</p>
-                <div className="flex gap-2">
-                    <Button action={() => {
-                        setQuestionTimeLimit(questionAssignerId, parseInt(timeLimitRef.current.value));
-                    }} theme='solid'>Set</Button>
-                    <Button
-                        action={() => {
-                            setTimeLimitOpen(false);
-                        }}
-                        theme='grey'>
-                        Cancel
-                    </Button>
-                </div>
-            </div>
-        </Modal>
     </div>
 }
 

@@ -30,11 +30,13 @@ export const Quiz = {
             updateQuizQuestion(
                 linkId: String!,
                 timeLimit: Int,
+                index: Int,
                 questionId: String,
             ): QuizQuestionLink
 
             addQuizQuestion(id: String!): Quiz
             removeQuizQuestion(id: String!, linkId: String!): Quiz
+            deleteQuiz(id: String!): Boolean
         }
     `,
     queries: {
@@ -194,7 +196,7 @@ export const Quiz = {
             })
         },
 
-        updateQuizQuestion: (_parent: any, args: { linkId: string, questionId?: string, timeLimit?: number }, context: Context) => {
+        updateQuizQuestion: (_parent: any, args: { linkId: string, questionId?: string, timeLimit?: number, index?: number }, context: Context) => {
             ProtectQuery(context, false);
 
             return context.prisma.quizQuestionLink.update({
@@ -204,6 +206,7 @@ export const Quiz = {
                 data: {
                     quizQuestionId: args.questionId,
                     timeLimit: args.timeLimit,
+                    index: args.index,
                 },
                 include: {
                     quiz: true,
@@ -288,6 +291,39 @@ export const Quiz = {
                     },
                 }
             })
+        },
+        deleteQuiz: async (_parent: any, arg: { id: string }, context: Context) => {
+            ProtectQuery(context, false);
+
+            const deleteQuestions = context.prisma.quizQuestionLink.deleteMany({
+                where: {
+                    quiz: {
+                        id: arg.id,
+                    }
+                }
+            });
+
+            const deleteQuiz = context.prisma.quiz.delete({
+                where: {
+                    id: arg.id,
+                },
+                include: {
+                    assignments: true,
+                    questions: {
+                        include: {
+                            quizQuestion: true,
+                        }
+                    },
+                }
+            });
+
+            try {
+                await context.prisma.$transaction([deleteQuestions, deleteQuiz]);
+                return true;
+            } catch (error) {
+            }
+
+            return false;
         },
     }
 }

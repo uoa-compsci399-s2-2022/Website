@@ -1,14 +1,9 @@
-import { moodleFixHtml } from '@/lib/util';
-import { faTrashCan } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { RadioGroup } from '@headlessui/react';
-import { Field, FieldArray, useField } from 'formik';
-import gen, { RandomSeed } from 'random-seed';
 import { MouseEventHandler, useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import Button from '../button';
-import MarkdownField from '../markdown_field';
-import { Tabs } from '../tabs';
+import { Field, useField } from 'formik';
+import gen, { RandomSeed } from 'random-seed';
+import Button from '../../button';
+import { Tabs } from '../../tabs';
+import { QuizQuestion } from '@prisma/client';
 
 const MemoryGameTypeField: React.FC = () => {
     const [input, meta, helper] = useField<boolean>('content.game_type');
@@ -613,4 +608,9 @@ export const MemoryGameQuestion: React.FC<MemoryGameQuestionProps> = ({ content,
             </div>
         </div>
     );
+}
+
+export const gradeMemoryGame = (question: QuizQuestion, answer: SessionAnswer & { type: 'memory_game' }): number | undefined => {
+    const grade: number = (question.content as any).grade;
+    return Math.round((Math.max(0, Math.min(answer.score, grade)) / grade) * 100);
 }

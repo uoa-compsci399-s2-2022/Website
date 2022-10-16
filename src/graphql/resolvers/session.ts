@@ -1,7 +1,7 @@
-import { questionGrade } from '@/lib/util';
-import { Context } from '@/pages/api/graphql';
 import { Prisma } from '@prisma/client';
 import { gql } from 'apollo-server-micro';
+import { questionGrade } from '@/components/question/question_type';
+import { Context } from '@/pages/api/graphql';
 import { ProtectQuery } from '../resolvers';
 
 export const Session = {
@@ -84,19 +84,11 @@ export const Session = {
 
             for (let i = 0; i < session.quizAssignment.quiz.questions.length; i++) {
                 const question = session.quizAssignment.quiz.questions[i].quizQuestion;
-                switch (question.type as QuestionType) {
-                    case 'description': {
-                        break;
-                    }
-                    case 'multichoice':
-                    case 'numerical':
-                    case 'memory_game': {
-                        const answer = answers[`${i}`];
-                        if (answer) {
-                            grade += questionGrade(question, answer) / 100;
-                        }
+                if (question) {
+                    const questionGradeResult = questionGrade(question, answers[`${question.id}`]);
+                    if (questionGradeResult !== undefined) {
+                        grade += questionGradeResult / 100;
                         graded += 1;
-                        break;
                     }
                 }
             }

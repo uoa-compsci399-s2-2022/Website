@@ -1,7 +1,7 @@
-import { moodleFixHtml } from '@/lib/util';
-import { Field, useField } from 'formik';
 import ReactMarkdown from 'react-markdown';
-import MarkdownField from '../markdown_field';
+import { moodleFixHtml } from '@/lib/util';
+import MarkdownField from '../../markdown_field';
+import { QuizQuestion } from '@prisma/client';
 
 interface DescriptionQuestionBuilderProps {
 

@@ -5,14 +5,11 @@ import React, { useEffect, useState } from 'react';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Quiz, QuizQuestionLink, QuizQuestion, QuizAssignment, QuizSession } from '@prisma/client';
 import { useSession } from 'next-auth/react';
-import { DescriptionQuestion } from '@/components/question/description';
-import { MultiChoiceQuestion } from '@/components/question/multichoice';
 import Button from '@/components/button';
 import ReactMarkdown from 'react-markdown';
 import { zeroPad } from '@/lib/util';
 import { LoadingSpinner } from '@/components/loading';
-import { MemoryGameQuestion } from '@/components/question/memory_game';
-import NumericalQuestion from '@/components/question/numerical';
+import { QuestionView } from '@/components/question/question_type';
 
 export const GetQuizNoAnswersQuery = gql`
     query($id: String!) {
@@ -168,73 +165,6 @@ const StartState: React.FC<StartStateProps> = ({ quiz, startQuiz }) => {
     </div>)
 }
 
-interface QuestionViewProps {
-    question: QuizQuestion,
-    state: SessionState,
-    answer?: SessionAnswer,
-    canChangeAnswer: boolean,
-    quizId: string,
-    setDisableControls: (disableControls: boolean) => void,
-    updateState: (update: any) => void,
-    changeAnswer: (answer: SessionAnswer) => void,
-    pushEvent: (event: SessionEvent) => void,
-}
-
-const QuestionView: React.FC<QuestionViewProps> = ({ question, state, answer, canChangeAnswer, quizId, setDisableControls, updateState, changeAnswer, pushEvent }) => {
-
-    let content = (<></>);
-
-    switch (question.type) {
-        case 'description': {
-            content = <DescriptionQuestion
-                content={question.content}
-            />;
-            break;
-        };
-        case 'multichoice': {
-            content = <MultiChoiceQuestion
-                content={question.content}
-                answer={answer}
-                canChangeAnswer={canChangeAnswer}
-                changeAnswer={changeAnswer}
-            />;
-            break;
-        };
-        case 'numerical': {
-            content = <NumericalQuestion
-                content={question.content}
-            />
-        };
-        case 'memory_game': {
-            content = <MemoryGameQuestion
-                content={question.content}
-                state={state}
-                answer={answer}
-                quizId={quizId}
-                setDisableControls={setDisableControls}
-                updateState={updateState}
-                changeAnswer={changeAnswer}
-                pushEvent={pushEvent}
-            />
-        }
-    }
-
-    return (
-        <div className="p-4 max-w-3xl mx-auto">
-            {question && <>
-                <div className="rounded-lg bg-slate-600 m-4">
-                    <h1 className="text-white text-3xl p-6 text-center">
-                        {
-                            question.name
-                        }
-                    </h1>
-                    {content}
-                </div>
-            </>}
-        </div>
-    );
-}
-
 interface QuizCountdownProps {
     started: Date,
     timeLimit: number,
@@ -343,6 +273,8 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
     const [saving, setSaving] = useState(false);
     const [disableControls, setDisableControls] = useState(false);
 
+    const questions = [...quiz.questions].sort((a, b) => a.index - b.index);
+
     const onUnload = (e: any): string | undefined => {
         if (!saving || !disableControls) {
             return undefined;
@@ -401,11 +333,11 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
     const changeAnswer = async (to: SessionAnswer) => {
         let from = undefined;
         if (`${state.question}` in answers) {
-            from = answers[`${state.question}`];
+            from = answers[`${questions[state.question].id}`];
         }
         setAnswers((answers) => {
             const newAnswer: any = {};
-            newAnswer[`${state.question}`] = to;
+            newAnswer[`${questions[state.question].id}`] = to;
             return {
                 ...answers,
                 ...newAnswer,
@@ -481,18 +413,18 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                 started={session.start}
                 timeLimit={quiz.timeLimit}
                 questionStarted={state.timeLimitEnded[state.question] ? undefined : state.timeLimitStarted[state.question]}
-                questionTimeLimit={quiz.questions[state.question].timeLimit}
+                questionTimeLimit={questions[state.question].timeLimit}
                 onTimeUp={finishQuiz}
                 onQuestionTimeUp={questionTimeUp}
             />
             <div>
                 {
-                    (quiz.questions[state.question].timeLimit > 0 && !(state.question in state.timeLimitStarted)) ?
+                    (questions[state.question].timeLimit > 0 && !(state.question in state.timeLimitStarted)) ?
                         <div className="p-4 max-w-3xl mx-auto">
                             <div className="rounded-lg bg-slate-600 m-4 p-6 flex flex-col gap-2">
                                 <h1 className="text-white">This question has a time limit</h1>
                                 <p className="text-white">
-                                    You only have {quiz.questions[state.question].timeLimit} minutes to complete this question.
+                                    You only have {questions[state.question].timeLimit} minutes to complete this question.
                                     Once the time limit is up, you will no longer be able to update this question.
                                 </p>
                                 <Button
@@ -505,10 +437,10 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                         </div>
                         :
                         <QuestionView
-                            question={quiz.questions[state.question].quizQuestion}
+                            question={questions[state.question].quizQuestion}
                             state={state}
-                            answer={answers[`${state.question}`] ?? undefined}
-                            canChangeAnswer={!(quiz.questions[state.question].timeLimit > 0 && state.timeLimitEnded[state.question])}
+                            answer={answers[`${questions[state.question].id}`] ?? undefined}
+                            canChangeAnswer={!(questions[state.question].timeLimit > 0 && state.timeLimitEnded[state.question])}
                             quizId={quiz.id}
                             setDisableControls={setDisableControls}
                             updateState={updateState}

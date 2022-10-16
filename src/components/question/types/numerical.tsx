@@ -1,12 +1,13 @@
-import { moodleFixHtml } from '@/lib/util';
 import ReactMarkdown from 'react-markdown';
+import { moodleFixHtml } from '@/lib/util';
+import { QuizQuestion } from '@prisma/client';
 
 interface NumericalQuestionProps {
     content: any,
     attribution?: string,
 }
 
-const NumericalQuestion: React.FC<NumericalQuestionProps> = ({ content }) => {
+export const NumericalQuestion: React.FC<NumericalQuestionProps> = ({ content }) => {
     return (
         <div className="m-2 p-2">
             {
@@ -24,4 +25,8 @@ const NumericalQuestion: React.FC<NumericalQuestionProps> = ({ content }) => {
     );
 }
 
-export default NumericalQuestion;
+
+
+export const gradeNumerical = (question: QuizQuestion, answer: SessionAnswer & { type: 'numerical' }): number | undefined => {
+    return undefined;
+}

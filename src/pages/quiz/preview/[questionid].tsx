@@ -10,11 +10,8 @@ import { gql, useQuery } from '@apollo/client';
 import dynamic from 'next/dynamic';
 import { QuizQuestion, User } from '@prisma/client';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
-import { DescriptionQuestion } from '@/components/question/description';
-import { MultiChoiceQuestion } from '@/components/question/multichoice';
 import { addApolloState, initializeApollo } from '@/lib/apollo';
-import NumericalQuestion from '@/components/question/numerical';
-import { MemoryGameQuestion } from '@/components/question/memory_game';
+import { QuestionView } from '@/components/question/question_type';
 
 export const GetQuestionQuery = gql`
     query($id: String!) {
@@ -76,43 +73,17 @@ const QuestionPreview: NextPage<QuestionPreviewProps> = ({ id }) => {
         variables: { id }
     })
 
+    console.log(data, loading, error);
+
     const question = data.question as QuizQuestion & {
         user: User,
     };
 
-    let content = (<></>);
-
-    switch (question.type) {
-        case 'description': {
-            content = <DescriptionQuestion content={question.content} />;
-            break;
-        };
-        case 'multichoice': {
-            content = <MultiChoiceQuestion content={question.content} />;
-            break;
-        };
-        case 'numerical': {
-            content = <NumericalQuestion content={question.content} />;
-            break;
-        };
-        case 'memory_game': {
-            content = <MemoryGameQuestion content={question.content} quizId="fixed seed" />
-        }
-    }
-
     return (
-        <div className="p-4 max-w-3xl mx-auto">
-            {question && <>
-                <div className="rounded-lg bg-slate-600 m-4">
-                    <h1 className="text-white text-3xl p-6 text-center">
-                        {
-                            question.name
-                        } (preview)
-                    </h1>
-                    {content}
-                </div>
-            </>}
-        </div>
+        <QuestionView
+            question={question}
+            editor={(question.content as any).source !== 'moodle'}
+        />
     );
 }
 
