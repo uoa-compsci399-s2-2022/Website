@@ -28,18 +28,17 @@ interface GroupProps {
 };
 
 interface QuizProps {
-    id: string,
-    created: Date,
+    id?: string,
     name: string,
     description: string,
     timeLimit: number,
-    userId: string,
     questions: QuizQuestionLinkProps[],
 }
 
 interface QuizQuestionLinkProps {
     timeLimit: number,
-    question: QuizQuestionProps,
+    index: number,
+    quizQuestion: QuizQuestionProps,
 }
 
 interface QuizQuestionProps {

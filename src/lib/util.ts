@@ -211,8 +211,27 @@ export const importQuestions = async (files: FileList | null | undefined, onImpo
         await importQuestionsXML(file, onImport);
     } else if (file.type === 'application/json') {
         await importQuestionsJSON(file, onImport);
+    } else {
+        alert(`Invalid file type ${file.type}.`)
     }
 };
+
+type OnImportQuizFunc = (quiz: QuizProps) => void;
+
+export const importQuiz = async (files: FileList | null | undefined, onImport: OnImportQuizFunc) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+
+    if (file.type !== 'application/json') {
+        alert(`Invalid file type ${file.type}.`)
+        return;
+    }
+
+    const text = await file.text();
+    const jsonObject = JSON.parse(text);
+
+    onImport(jsonObject);
+}
 
 export const saveFileAsString = (text: string, type: string, name: string) => {
     let fileElement = document.createElement('a');

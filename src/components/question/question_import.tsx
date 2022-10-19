@@ -1,5 +1,5 @@
 /**
- * An import button for importing a list of students
+ * An import button for importing a set of questions
  **/
 import React, { FormEvent, Fragment, useRef, useState } from 'react';
 import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons';

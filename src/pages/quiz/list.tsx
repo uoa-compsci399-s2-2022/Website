@@ -5,7 +5,7 @@ import { GetServerSideProps, NextPage } from 'next'
 import { useEffect, useState } from 'react';
 import { unstable_getServerSession } from 'next-auth';
 import { Quiz, QuizAssignment, QuizQuestion, User } from '@prisma/client';
-import { gql, useMutation, useQuery } from '@apollo/client';
+import { gql, useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import Card, { CardContainer } from '@/components/card';
 import QuizCard from '@/components/quiz/quiz_card';
 import { QuizCreator } from '@/components/quiz/quiz_creator';
@@ -18,6 +18,10 @@ import { QuestionCreator } from '@/components/question/question_creator';
 import { LoadingSpinner } from '@/components/loading';
 import { QuestionView } from '@/components/question/question_view';
 import ExportQuestions from '@/components/question/question_export';
+import ImportQuiz from '@/components/quiz/quiz_import';
+import { GetQuestionQuery } from './preview/[questionid]';
+import { AddQuizQuestionMutation } from './_editor';
+import { UpdateQuizQuestionMutation } from '@/components/quiz/question_assigner';
 
 export const GetQuestionsQuery = gql`
     query {
@@ -77,6 +81,17 @@ const DeleteQuestionMutation = gql`
     }
 `;
 
+const CreateQuizMutation = gql`
+    mutation($name: String!, $description: String!, $questions: Int!, $timeLimit: Int!) {
+        createQuiz(name: $name, description: $description, questions: $questions, timeLimit: $timeLimit) {
+            id
+            questions {
+                id
+            }
+        }
+    }
+`;
+
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await unstable_getServerSession(context.req, context.res, authOptions);
 
@@ -114,11 +129,18 @@ const QuizList: NextPage = ({ }) => {
     const [loadState, setLoadState] = useState<string | undefined>(undefined);
     const [selected, setSelected] = useState<Record<string, boolean>>({});
     const [questionSearch, setQuestionSearch] = useState('');
+    const [quizUploading, setQuizUploading] = useState(false);
 
-    const { data: quizData } = useQuery(GetQuizzesQuery);
+    const { data: quizData, refetch: refetchQuizzes } = useQuery(GetQuizzesQuery);
     const { data: questionData, refetch, loading: questionsLoading } = useQuery(GetQuestionsQuery);
     const [createQuestion] = useMutation(CreateQuestionMutation);
     const [deleteQuestion] = useMutation(DeleteQuestionMutation);
+
+    // quiz import GQL
+    const [getQuestion] = useLazyQuery(GetQuestionQuery);
+    const [createQuiz] = useMutation(CreateQuizMutation);
+    const [addQuizQuestion] = useMutation(AddQuizQuestionMutation);
+    const [updateQuizQuestion] = useMutation(UpdateQuizQuestionMutation);
 
     useEffect(() => {
         setSelected({});
@@ -159,6 +181,88 @@ const QuizList: NextPage = ({ }) => {
         setLoadState(undefined);
     }
 
+    const uploadQuiz = async (quiz: QuizProps) => {
+        setQuizUploading(true);
+
+        let quizId = undefined;
+        let questionLinkIds: string[] = [];
+
+        try {
+            const res = await createQuiz({
+                variables: {
+                    name: quiz.name,
+                    description: quiz.description,
+                    timeLimit: quiz.timeLimit,
+                    questions: quiz.questions.length,
+                }
+            });
+            quizId = res.data.createQuiz.id;
+            questionLinkIds = res.data.createQuiz.questions.map((ql: any) => ql.id);
+        } catch (error) {
+            alert('Failed to create new quiz.');
+            console.error(error);
+            setQuizUploading(false);
+            return;
+        }
+
+        for (const question of quiz.questions) {
+            let id = undefined;
+            if (!question.quizQuestion) {
+                continue;
+            }
+            if (question.quizQuestion.id) {
+                try {
+                    const res = await getQuestion({
+                        variables: {
+                            id: question.quizQuestion.id,
+                        }
+                    });
+                    console.log(res);
+                    if (res.data.question) {
+                        id = question.quizQuestion.id;
+                    }
+                    console.log(id);
+                } catch (error) {
+                    // this is ok, the question may have since been deleted (or not exist)
+                }
+            }
+            if (id === undefined) {
+                try {
+                    const res = await createQuestion({
+                        variables: {
+                            ...question.quizQuestion,
+                        }
+                    });
+                    id = res.data.createQuestion.id;
+                } catch (error) {
+                    // this is not ok, the question should be able to be created
+                    alert(`Failed to create question ${question.quizQuestion.name}`);
+                    console.error(error);
+                    continue;
+                }
+            }
+
+            const linkId = questionLinkIds.pop();
+            try {
+                await updateQuizQuestion({
+                    variables: {
+                        linkId: linkId,
+                        timeLimit: question.timeLimit,
+                        index: question.index,
+                        questionId: id,
+                    }
+                });
+            } catch (error) {
+                alert('Failed to assign question while importing!');
+                console.error(error);
+                continue;
+            }
+        }
+
+        await refetchQuizzes();
+        setQuizUploading(false);
+    }
+
     const deleteSelected = async () => {
         const selectedQuestions = Object.entries(selected)
             .filter(([k, v]) => v && !k.startsWith('category.'));
@@ -193,9 +297,19 @@ const QuizList: NextPage = ({ }) => {
             <div className="flex flex-col lg:flex-row">
                 <div className="w-full lg:w-1/2">
                     <div className="rounded-lg bg-slate-600 m-4">
-                        <h1 className="text-white text-3xl p-6">
-                            your quizzes
-                        </h1>
+                        <div className="flex gap-2 p-6">
+                            <h1 className="text-white text-3xl flex-grow">
+                                your quizzes
+                            </h1>
+                            {
+                                quizUploading && <p className="text-white pb-4 flex gap-2 items-center">
+                                    <LoadingSpinner /> Uploading
+                                </p>
+                            }
+                            <ImportQuiz
+                                onImport={(quiz) => uploadQuiz(quiz)}
+                            />
+                        </div>
                         <CardContainer>
                             {
                                 /* we have no quizzes loaded yet */
@@ -220,12 +334,10 @@ const QuizList: NextPage = ({ }) => {
                             <input
                                 type="text"
                                 placeholder="Search"
-                                className="rounded px-2 hidden lg:block"
-                                onChange={(event) => {
-                                    setQuestionSearch(event.target.value);
-                                }}
+                                className="rounded px-2 hidden md:block"
+                                onChange={(event) => setQuestionSearch(event.target.value)}
                             />
-                            <ImportQuestions onImport={(questions) => { uploadQuestions(questions) }} />
+                            <ImportQuestions onImport={(questions) => uploadQuestions(questions)} />
                         </div>
                         <div className="pt-2">
                             {
@@ -264,18 +376,16 @@ const QuizList: NextPage = ({ }) => {
                                         onStart={() => setLoadState('Exporting')}
                                         onComplete={() => setLoadState(undefined)}
                                     />
-                                    {loadState && <p className="text-white pb-4 flex gap-2 items-center">
-                                        <LoadingSpinner /> {loadState}
-                                    </p>}
                                 </>
                             }
+                            {loadState && <p className="text-white pb-4 flex gap-2 items-center">
+                                <LoadingSpinner /> {loadState}
+                            </p>}
                             <input
                                 type="text"
                                 placeholder="Search"
                                 className="rounded px-2 block sm:hidden"
-                                onChange={(event) => {
-                                    setQuestionSearch(event.target.value);
-                                }}
+                                onChange={(event) => setQuestionSearch(event.target.value)}
                             />
                         </div>
                     </div>

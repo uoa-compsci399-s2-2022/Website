@@ -8,7 +8,7 @@ import { QuizQuestion, User } from "@prisma/client";
 import { Field, Form, Formik } from 'formik';
 import Button from '../button';
 
-const UpdateQuizQuestionMutation = gql`
+export const UpdateQuizQuestionMutation = gql`
     mutation($linkId: String!, $questionId: String, $timeLimit: Int, $index: Int) {
         updateQuizQuestion(linkId: $linkId, questionId: $questionId, timeLimit: $timeLimit, index: $index) {
             id

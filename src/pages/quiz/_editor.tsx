@@ -36,7 +36,7 @@ export const GetQuizQuery = gql`
     }
 `;
 
-const AddQuizQuestionMutation = gql`
+export const AddQuizQuestionMutation = gql`
     mutation($id: String!) {
         addQuizQuestion(id: $id) {
             id

@@ -67,7 +67,7 @@ const ExportQuestions: React.FC<ExportProps> = ({ selected, onStart, onComplete 
             >
                 <Menu.Items className="origin-top-left left-0 sm:left-auto sm:origin-top-right sm:right-0 absolute mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="py-1">
-                        <Menu.Item>
+                        <Menu.Item disabled={true}>
                             {({ active }) => (
                                 <a
                                     onClick={() => {
