@@ -36,23 +36,25 @@ const MainClassCard: React.FC<MainClassProps> = ({ _class, doRefetch }) => {
     return (
         <>
             <Card width="">
-                <h5 className="mt-4 text-xl font-bold text-text-colour">{_class.name}</h5>
-                <p>
-                    <span className="block">Students</span>
-                    <span className="block">Groups</span>
-                    <span className="block">Instructors</span>
-                    <span className="block">Assigned Quizzes</span>
-                </p>
-                <div className='grid grid-cols-3 pt-4 gap-4'>
-                    <Button action={() => {
-                        setAssignerOpen(true);
-                    }} theme='solid'>Assign Quiz</Button>
-                    <Button action={() => {
-                        setEditorOpen(true);
-                    }} theme='solid'>Edit Class</Button>
-                    <Button action={() => {
-                        setDeleteOpen(true);
-                    }} theme='danger'>Delete Class</Button>
+                <div className="flex flex-col h-52">
+                    <h5 className="text-3xl font-bold text-text-colour">{_class.name}</h5>
+                    <p>
+                        <span className="block">{_class.students.length} Student{_class.students.length === 1 ? '' : 's'}</span>
+                        <span className="block">{_class.groups.length} Group{_class.groups.length === 1 ? '' : 's'}</span>
+                        <span className="block">{_class.users.length} Instructor{_class.users.length === 1 ? '' : 's'}</span>
+                    </p>
+                    <div className='grid grid-cols-3 pt-4 gap-4 mt-auto justify-self-end'>
+                        <Button action={() => {
+                            setAssignerOpen(true);
+                        }} theme='solid'>Assign Quiz</Button>
+                        <Button action={() => {
+                            setEditorOpen(true);
+                        }} theme='solid'>Edit Class</Button>
+                        <Button action={() => {
+                            setDeleteOpen(true);
+                        }} theme='danger'>Delete Class</Button>
+                    </div>
+
                 </div>
             </Card>
 
