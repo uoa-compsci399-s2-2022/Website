@@ -26,6 +26,7 @@ const InstructorLogin: React.FC<InstructorLoginProps> = ({ providers }) => {
                     providers && Object.values(providers).filter((provider) => provider.type === 'oauth').map((provider) => {
                         return (
                             <Button
+                                theme='solid'
                                 key={`provider-${provider.name}`}
                                 action={() => signIn(provider.id, { callbackUrl: '/' })}
                             >

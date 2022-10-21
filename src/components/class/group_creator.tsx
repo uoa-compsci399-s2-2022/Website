@@ -47,7 +47,7 @@ const GroupTypeField: React.FC<GroupTypeFieldProps> = ({ students, setFieldValue
                                     Passcode
                                 </label>
                                 <Field
-                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 bg-background text-text-colour"
+                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                     name="passcode"
                                     id="passcode"
                                     validate={(passcode: string) => validateNonEmpty('Passcode', passcode)}
@@ -173,7 +173,7 @@ export const GroupCreator: React.FC<GroupCreatorProps> = ({ isOpen, setIsOpen, d
                                     Name
                                 </label>
                                 <Field
-                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 bg-background text-text-colour"
+                                    className="outline outline-1 focus:outline-2 rounded w-full p-2 text-black"
                                     name="name"
                                     id="name"
                                     validate={(name: string) => validateNonEmpty('Name', name)}

@@ -64,6 +64,7 @@ const InstructorsField: React.FC = () => {
                         ))
                     }
                     <Button
+                        theme="solid"
                         action={() => helpers.push('')}
                         preventDefault={true}
                     >
@@ -143,7 +144,7 @@ export const ClassEditor: React.FC<ClassEditorProps> = ({ isOpen, setIsOpen, doR
                                 <Button theme='solid' action={() => { }} disabled={loading || !isValid}>
                                     Save
                                 </Button>
-                                <Button action={() => setIsOpen(false)} preventDefault={true}>Cancel</Button>
+                                <Button theme="grey" action={() => setIsOpen(false)} preventDefault={true}>Cancel</Button>
                                 {loading && <LoadingSpinner colour="black" />}
                                 {status && status.submitError && <span className="text-red-500">{'Server error: ' + status.submitError}</span>}
                             </div>

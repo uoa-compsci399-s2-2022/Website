@@ -25,8 +25,8 @@ type Colours = {
 
 const colours: Colours = {
     solid: {
-        enabled: 'border-blue-600 bg-blue-700 text-text-colour hover:bg-blue-800',
-        disabled: 'border-gray-300 bg-background text-text-colour',
+        enabled: 'bg-accent text-text-colour hover:bg-accent/[0.85]',
+        disabled: 'bg-background text-text-colour',
     },
     grey: {
         enabled: 'border-gray-300 bg-background text-text-colour-700 hover:bg-gray-500',
@@ -37,7 +37,7 @@ const colours: Colours = {
         disabled: 'border-gray-300 bg-background text-text-colour',
     },
     passive: {
-        enabled: 'bg-gray-800 text-white border-gray-600 hover:bg-gray-700',
+        enabled: 'bg-gray-800 text-white border-gray-600 hover:bg-gray-900',
         disabled: 'border-gray-300 bg-background text-text-colour',
     }
 }
@@ -56,7 +56,7 @@ const Button: React.FC<ButtonProps> = ({ theme, disabled, children, action, prev
     return <button
         type={type}
         onClick={onClick}
-        className={`inline-flex gap-2 items-center justify-center rounded-md border shadow-sm px-4 py-2 text-sm font-medium focus:outline-none ${colour}`}
+        className={`inline-flex gap-2 items-center justify-center rounded-md shadow-sm px-4 py-2 text-sm font-medium focus:outline-none ${colour}`}
         disabled={disabled}
     >
         {children}

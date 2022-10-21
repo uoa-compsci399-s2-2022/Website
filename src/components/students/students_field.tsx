@@ -115,7 +115,7 @@ export const ClassStudentsField: React.FC<ClassStudentsFieldProp> = ({ validateF
                                 }
                             </tbody>
                         </table>
-                        <Button action={() => helpers.push({ name: '', passcode: '' } as ImportedStudent)}>Add row</Button>
+                        <Button theme="solid" action={() => helpers.push({ name: '', passcode: '' } as ImportedStudent)}>Add row</Button>
                     </div>
                 )}
             />

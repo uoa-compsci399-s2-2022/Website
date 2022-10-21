@@ -22,7 +22,7 @@ export const DatetimeField: React.FC<DatetimeFieldProps> = ({ name }) => {
     return (
         <div className="w-full">
             <input
-                className="w-3/5 outline outline-1 focus:outline-2 rounded p-2 bg-primary text-white accent-white"
+                className="w-3/5 border border-border rounded p-2 bg-primary text-white"
                 type='date'
                 value={toDateString(field.value)}
                 onChange={(event) => {
@@ -37,7 +37,7 @@ export const DatetimeField: React.FC<DatetimeFieldProps> = ({ name }) => {
                 }}
             />
             <input
-                className="w-2/5 outline outline-1 focus:outline-2 rounded p-2 bg-primary"
+                className="w-2/5 border border-border rounded p-2 bg-primary"
                 type='time'
                 value={toTimeString(field.value)}
                 onChange={(event) => {
