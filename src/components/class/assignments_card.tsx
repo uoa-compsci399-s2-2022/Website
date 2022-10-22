@@ -7,37 +7,29 @@ import Button from '../button';
 import Card from '../card';
 import { AssignmentEditor } from '../quiz/assignment_editor';
 
-export const GetQuizAssignmentsQuery = gql`
-    query {
-        quizzes {
+export const GetClassAssignmentsQuery = gql`
+    query($classId: String!) {
+        classAssignments(classId: $classId) {
             id
-            created
-            name
-            description
-            timeLimit
-            user {
+            start
+            end
+            student {
                 id
                 name
-                email
+                passcode
             }
-            assignments {
+            group {
                 id
-                start
-                end
-                student {
-                    id
-                    name
-                    passcode
-                }
-                group {
-                    id
-                    name
-                    anonymous
-                    passcode
-                }
+                name
+                anonymous
+                passcode
             }
-            questions {
+            quiz {
                 id
+                created
+                name
+                description
+                timeLimit
             }
         }
     }
@@ -64,19 +56,16 @@ interface AssignmentGroup {
 }
 
 interface AssignmentsCardProps {
-    quizzes: (Quiz & {
-        user: User,
-        assignments: (QuizAssignment & {
-            student?: Student,
-            group?: Group,
-        })[],
-        questions: (QuizQuestion | null)[]
-    })[];
+    assignments: (QuizAssignment & {
+        student?: Student,
+        group?: Group,
+        quiz: Quiz,
+    })[],
     loading: boolean,
     doRefetch: () => void,
 }
 
-const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doRefetch }) => {
+const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ assignments, loading, doRefetch }) => {
     const searchRef = useRef<HTMLInputElement>(null);
     const [assignmentGroups, setAssignmentGroups] = useState<AssignmentGroup[]>([]);
     const [editingAssignmentGroup, setEditingAssignmentGroup] = useState<AssignmentGroup | undefined>(undefined);
@@ -86,52 +75,49 @@ const AssignmentsCard: React.FC<AssignmentsCardProps> = ({ quizzes, loading, doR
         const generateAssignmentKey = (assignment: QuizAssignment): string => {
             return `${assignment.quizId},${assignment.start},${assignment.end}`;
         };
-        const groupAssignmentsIntoGroups = (quizzes: (Quiz & {
-            assignments: (QuizAssignment & {
-                student?: Student,
-                group?: Group,
-            })[],
+        const groupAssignmentsIntoGroups = (assignments: (QuizAssignment & {
+            student?: Student,
+            group?: Group,
+            quiz: Quiz,
         })[]): AssignmentGroup[] => {
             const assignmentRecord: Record<string, AssignmentGroup> = {};
-            for (const quiz of quizzes) {
-                for (const assignment of quiz.assignments) {
-                    const key = generateAssignmentKey(assignment);
+            for (const assignment of assignments) {
+                const key = generateAssignmentKey(assignment);
 
-                    if (key in assignmentRecord) {
-                        if (assignment.student) {
-                            assignmentRecord[key].students.push(assignment.student);
-                        } else if (assignment.group) {
-                            assignmentRecord[key].groups.push(assignment.group);
-                        }
-                        assignmentRecord[key].assignments.push(assignment);
-                    } else {
-                        const members: any = {
-                            students: [],
-                            groups: [],
-                        };
-                        if (assignment.student) {
-                            members.students = [assignment.student];
-                        } else if (assignment.group) {
-                            members.groups = [assignment.group];
-                        }
+                if (key in assignmentRecord) {
+                    if (assignment.student) {
+                        assignmentRecord[key].students.push(assignment.student);
+                    } else if (assignment.group) {
+                        assignmentRecord[key].groups.push(assignment.group);
+                    }
+                    assignmentRecord[key].assignments.push(assignment);
+                } else {
+                    const members: any = {
+                        students: [],
+                        groups: [],
+                    };
+                    if (assignment.student) {
+                        members.students = [assignment.student];
+                    } else if (assignment.group) {
+                        members.groups = [assignment.group];
+                    }
 
-                        assignmentRecord[key] = {
-                            quiz,
-                            assignments: [assignment],
-                            startDate: new Date(assignment.start),
-                            endDate: new Date(assignment.end),
-                            ...members,
-                        }
+                    assignmentRecord[key] = {
+                        quiz: assignment.quiz,
+                        assignments: [assignment],
+                        startDate: new Date(assignment.start),
+                        endDate: new Date(assignment.end),
+                        ...members,
                     }
                 }
             }
             return Object.values(assignmentRecord);
         };
 
-        const groups = groupAssignmentsIntoGroups(quizzes);
+        const groups = groupAssignmentsIntoGroups(assignments);
         setAssignmentGroups(groups);
 
-    }, [quizzes]);
+    }, [assignments]);
 
     const deleteAssignmentGroup = async (assignmentGroup: AssignmentGroup) => {
         try {

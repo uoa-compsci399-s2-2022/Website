@@ -1,17 +1,42 @@
 import { Class, Quiz, Student, User } from '@prisma/client';
 import Card from '../card';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import Button from '../button';
 import { SetStateAction, useEffect, useState } from 'react';
 import ImportQuiz from '../quiz/quiz_import';
 import ExportStatistics from './statistics_export';
-import { useQuery } from '@apollo/client';
+import { gql, useLazyQuery, useQuery } from '@apollo/client';
 import { GetQuizzesQuery } from '@/pages/quiz/list';
 import { Selector } from '../selector';
 import { LoadingSpinner } from '../loading';
+import { StatsResult } from '@/graphql/resolvers/statistics';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+const ClassStatisticsQuery = gql`
+  query($classId: String!) {
+    classStatistics(classId: $classId) {
+      id
+      completed
+      assigned
+      averageGrade
+      data
+    }
+  }
+`;
+
+const QuizStatisticsQuery = gql`
+  query($classId: String!, $quizId: String!) {
+    quizStatistics(classId: $classId, quizId: $quizId) {
+      id
+      completed
+      assigned
+      averageGrade
+      data
+    }
+  }
+`;
+
+ChartJS.register(ArcElement, Tooltip, Legend, Title, CategoryScale, LinearScale, BarElement);
 
 interface QuizSelectorProps {
   value: { id: string, name: string },
@@ -45,9 +70,63 @@ const QuizSelector: React.FC<QuizSelectorProps> = ({ value, setValue }) => {
   )
 };
 
-const StatsCard: React.FC = ({ }) => {
+interface StatsCard {
+  classId: string,
+}
+const StatsCard: React.FC<StatsCard> = ({ classId }) => {
   const [selectedQuiz, setSelectedQuiz] = useState<{ id: string, name: string }>({ id: '', name: '' });
+  const [quizData, setQuizData] = useState<Record<string, StatsResult>>({});
   const [exporting, setExporting] = useState(false);
+  const { data, loading } = useQuery(ClassStatisticsQuery, {
+    variables: {
+      classId,
+    }
+  });
+  const [quizStatisticsQuery] = useLazyQuery(QuizStatisticsQuery);
+
+  if (!loading) {
+    console.log(data);
+  }
+
+  useEffect(() => {
+    if (!loading && data.classStatistics) {
+      setQuizData((prev) => {
+        const next = {
+          ...prev
+        };
+
+        next[''] = data.classStatistics as StatsResult;
+
+        return next;
+      })
+    }
+  }, [data]);
+
+  useEffect(() => {
+    (async () => {
+      if (!(selectedQuiz.id in quizData) && selectedQuiz.id !== '') {
+        try {
+          const result = await quizStatisticsQuery({
+            variables: {
+              classId,
+              quizId: selectedQuiz.id,
+            }
+          });
+          setQuizData((prev) => {
+            const next = {
+              ...prev,
+            };
+
+            next[selectedQuiz.id] = result.data.quizStatistics;
+
+            return next;
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    })();
+  }, [selectedQuiz]);
 
   const data1 = {
     labels: ['Complete', 'Incomplete'],
@@ -114,44 +193,92 @@ const StatsCard: React.FC = ({ }) => {
     }]
   };
 
-  const optionsDoughnut = {
+  const optionsDoughnut1 = {
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: 'Completion',
+        position: 'bottom' as const,
+        padding: {
+          top: 10,
+          bottom: 0,
+        }
+      }
+    }
+  }
+
+  const optionsDoughnut2 = {
     maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false
+      },
+      title: {
+        display: true,
+        text: 'Average Mark',
+        position: 'bottom' as const,
+        padding: {
+          top: 10,
+          bottom: 0,
+        }
       }
     }
   }
 
   const optionsBar = {
     maintainAspectRatio: false,
+    scales: {
+      x: {
+        ticks: {
+          display: false
+        }
+      }
+    },
     plugins: {
       legend: {
         display: false
+      },
+      title: {
+        display: true,
+        text: 'Quiz Breakdown',
+        position: 'bottom' as const,
+        padding: {
+          top: 10,
+          bottom: 0,
+        }
       }
     }
   }
 
+  const isLoading = loading || quizData[selectedQuiz.id] === undefined;
+  const isEmpty = !isLoading && quizData[selectedQuiz.id].completed === 0;
+  console.log(quizData[selectedQuiz.id]);
   return (
     <Card width=''>
       <div className="flex flex-col h-52">
-        <h1 className="text-white font-bold text-xl">Statistics</h1>
-        <div className='grid grid-cols-3 gap-0 p-4'>
-          <a><Doughnut data={data1} width={'100px'} height={'100px'} options={optionsDoughnut} /></a>
-          <a><Doughnut data={data2} width={'100px'} height={'100px'} options={optionsDoughnut} /></a>
-          <a><Bar data={data3} width={'100px'} height={'100px'} options={optionsBar} /></a>
+        <div className='grid grid-cols-3 gap-0 p-4 flex-grow'>
+          {
+            isLoading ? <LoadingSpinner /> : isEmpty ? <p>No quiz attempts</p> : <>
+              <p><Bar data={data3} width={'100px'} height={'100px'} options={optionsBar} /></p>
+              <p><Doughnut data={data1} width={'100px'} height={'100px'} options={optionsDoughnut1} /></p>
+              <p><Doughnut data={data2} width={'100px'} height={'100px'} options={optionsDoughnut2} /></p>
+            </>
+          }
         </div>
         <div className="mt-auto justify-self-end flex items-center gap-2">
           <div className="flex-grow flex items-center pr-4">
             <p className="w-20">
-              By quiz:
+              Stats for:
             </p>
             <div className="flex-grow">
               <QuizSelector
                 value={selectedQuiz}
                 setValue={setSelectedQuiz}
               />
-
             </div>
           </div>
           {selectedQuiz.id !== '' &&

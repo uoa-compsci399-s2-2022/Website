@@ -6,6 +6,7 @@ export const Assignment = {
     typeDefs: gql`
         extend type Query {
             assignment(id: String!): QuizAssignment
+            classAssignments(classId: String!): [QuizAssignment!]!
             upcomingQuizzes: [QuizAssignment!]!
             previousQuizzes: [QuizAssignment!]!
         }
@@ -13,6 +14,7 @@ export const Assignment = {
         extend type Mutation {
             assignQuiz(
                 quiz: String!,
+                classId: String!,
                 student: String, 
                 group: String, 
                 start: DateTime!, 
@@ -70,6 +72,23 @@ export const Assignment = {
                     quiz: true,
                     assignedBy: true,
                     sessions: true,
+                }
+            });
+        },
+
+        classAssignments: (_parent: any, arg: { classId: string }, context: Context) => {
+            return context.prisma.quizAssignment.findMany({
+                where: {
+                    class: {
+                        id: arg.classId,
+                    },
+                },
+                include: {
+                    quiz: true,
+                    assignedBy: true,
+                    sessions: true,
+                    student: true,
+                    group: true,
                 }
             });
         },
@@ -159,7 +178,7 @@ export const Assignment = {
         }
     },
     mutations: {
-        assignQuiz: (_parent: any, args: { quiz: string, student?: string, group?: string, start: Date, end: Date }, context: Context) => {
+        assignQuiz: (_parent: any, args: { quiz: string, classId: string, student?: string, group?: string, start: Date, end: Date }, context: Context) => {
             ProtectQuery(context, false);
 
             if (!args.student && !args.group) {
@@ -199,6 +218,11 @@ export const Assignment = {
                     assignedBy: {
                         connect: {
                             id: context.session.user.uid,
+                        }
+                    },
+                    class: {
+                        connect: {
+                            id: args.classId,
                         }
                     },
                     start: args.start,

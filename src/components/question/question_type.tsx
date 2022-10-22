@@ -105,12 +105,35 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, state, ans
  * Function to grade the question, from 0-100 or undefined if this question should not count
  * towards the grade
  */
-export const questionGrade = (question: QuizQuestion, answer: SessionAnswer): number | undefined => {
+export const questionGrade = (question: QuizQuestion, answer?: SessionAnswer): number | undefined => {
+    /*
+     * If the question has gone un-answered, what grade should the student recieve.
+     */
+    if (answer === undefined) {
+        switch (question.type) {
+            case 'multichoice': {
+                return 0;
+            }
+            case 'numerical': {
+                return 0;
+            }
+            case 'memory_game': {
+                return 0;
+            }
+            default: {
+                return undefined;
+            }
+        }
+    }
+
     if (answer.type !== question.type) {
         console.error('Error - question and answer mismatch!');
         return undefined;
     }
 
+    /*
+     * If the question has been answered, what grade should the student recieve.
+     */
     switch (answer.type) {
         case 'multichoice': {
             return gradeMultiChoice(question, answer);

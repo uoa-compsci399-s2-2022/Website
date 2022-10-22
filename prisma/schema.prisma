@@ -63,12 +63,13 @@ model User {
 }
 
 model Class {
-  id       String    @id @default(cuid())
-  textid   String    @unique
-  name     String
-  users    User[]
-  students Student[]
-  groups   Group[]
+  id          String           @id @default(cuid())
+  textid      String           @unique
+  name        String
+  users       User[]
+  students    Student[]
+  groups      Group[]
+  assignments QuizAssignment[]
 }
 
 model Student {
@@ -143,6 +144,8 @@ model QuizAssignment {
   group      Group?        @relation(fields: [groupId], references: [id])
   groupId    String?
   sessions   QuizSession[]
+  class      Class?        @relation(fields: [classId], references: [id])
+  classId    String?
 }
 
 model QuizSession {

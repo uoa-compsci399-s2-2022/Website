@@ -12,8 +12,8 @@ import { Selector } from '../selector';
 import { ListField } from '../list_field';
 
 const AssignQuizMutation = gql`
-    mutation($quizId: String!, $student: String, $group: String, $start: DateTime!, $end: DateTime!) {
-        assignQuiz(quiz: $quizId, student: $student, group: $group, start: $start, end: $end) {
+    mutation($quizId: String!, $classId: String!, $student: String, $group: String, $start: DateTime!, $end: DateTime!) {
+        assignQuiz(quiz: $quizId, classId: $classId, student: $student, group: $group, start: $start, end: $end) {
             id
         }
     }
@@ -161,6 +161,7 @@ export const QuizAssigner: React.FC<QuizAssignerProps> = ({ isOpen, setIsOpen, d
                             await assignQuiz({
                                 variables: {
                                     quizId: quiz.id,
+                                    classId: _class.id,
                                     student,
                                     start: new Date(startDate),
                                     end: new Date(endDate),
@@ -171,6 +172,7 @@ export const QuizAssigner: React.FC<QuizAssignerProps> = ({ isOpen, setIsOpen, d
                             await assignQuiz({
                                 variables: {
                                     quizId: quiz.id,
+                                    classId: _class.id,
                                     group,
                                     start: new Date(startDate),
                                     end: new Date(endDate),

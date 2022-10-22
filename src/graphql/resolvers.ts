@@ -6,6 +6,7 @@ import { Group } from './resolvers/group';
 import { Question } from './resolvers/question';
 import { Quiz } from './resolvers/quiz';
 import { Session } from './resolvers/session';
+import { Statistics } from './resolvers/statistics';
 import { Student } from './resolvers/student';
 
 export const ProtectQuery = (context: Context, student?: boolean) => {
@@ -35,6 +36,7 @@ export const resolvers = {
         ...Question.queries,
         ...Quiz.queries,
         ...Session.queries,
+        ...Statistics.queries,
         ...Student.queries,
     },
     Mutation: {

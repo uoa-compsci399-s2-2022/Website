@@ -1,6 +1,6 @@
+import { gql } from 'apollo-server-micro';
 import { questionRemoveAnswers } from '@/lib/util';
 import { Context } from '@/pages/api/graphql';
-import { gql } from 'apollo-server-micro';
 import { ProtectQuery } from '../resolvers';
 
 export const Quiz = {
@@ -9,7 +9,6 @@ export const Quiz = {
             quiz(id: String!): Quiz
             quizNoAnswers(id: String!): Quiz
             quizzes: [Quiz!]!
-            quizSessions: [QuizSession!]!
         }
 
         extend type Mutation {
@@ -109,20 +108,6 @@ export const Quiz = {
                         }
                     },
                 }
-            });
-        },
-
-        quizSessions: (_parent: any, _arg: any, context: Context) => {
-            ProtectQuery(context, false);
-
-            return context.prisma.quizSession.findMany({
-                where: {
-                    quizAssignment: {
-                        assignedBy: {
-                            id: context.session.user.uid
-                        }
-                    }
-                },
             });
         },
     },

@@ -176,9 +176,9 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
         setLoading(false);
     }
 
-    return <div className="w-4/5 mx-auto pb-4">
+    return <div className="w-full md:w-4/5 mx-auto pb-4">
         <div className="rounded-lg bg-slate-600 m-4">
-            <div className="flex p-4 items-center">
+            <div className="flex flex-col sm:flex-row p-4 items-center">
                 <h1 className="text-white text-3xl p-2 flex-grow">
                     {quiz.name}
                 </h1>
@@ -249,7 +249,7 @@ const QuizEditor: React.FC<QuizEditorProps> = ({ id }) => {
                                                     }
                                                 });
                                                 setQuestionAssignerOpen(true);
-                                            }} theme='solid'>Modify Question</Button>
+                                            }} theme='solid'>Modify</Button>
                                             <Button action={() => {
                                                 deleteQuestion(question.id);
                                             }} theme='danger'>

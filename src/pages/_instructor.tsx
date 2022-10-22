@@ -68,7 +68,7 @@ const Instructor: React.FC = () => {
         <>
             <main>
                 <h1 className="text-white text-3xl p-6">
-                    your classes
+                    Your Classes
                 </h1>
                 <CardContainer>
                     {
@@ -79,7 +79,8 @@ const Instructor: React.FC = () => {
                         })
                     }
                     <Card onClick={() => setClassCreatorOpen(true)}>
-                        <h1 className="mt-4 text-xl font-bold text-text-colour w-full text-center">create new class</h1>
+                        <h1 className="mt-4 text-xl font-bold text-text-colour w-full">New Class</h1>
+                        <p>Create a new class</p>
                     </Card>
                 </CardContainer>
 

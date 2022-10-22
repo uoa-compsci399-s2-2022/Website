@@ -17,7 +17,7 @@ import StatsCard from '@/components/class/stats_card';
 import ClassCard from '@/components/class_card';
 import StudentsCard from '@/components/class/students_card';
 import GroupsCard from '@/components/class/groups_card';
-import AssignmentsCard, { GetQuizAssignmentsQuery } from '@/components/class/assignments_card';
+import AssignmentsCard, { GetClassAssignmentsQuery } from '@/components/class/assignments_card';
 
 
 const GetClassQuery = gql`
@@ -103,17 +103,6 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
         variables: { textid }
     })
 
-    const { data: quizData, loading: quizDataLoading, refetch: quizRefetch } = useQuery(GetQuizAssignmentsQuery);
-
-    const quizzes = (quizData?.quizzes ?? []) as (Quiz & {
-        user: User,
-        assignments: (QuizAssignment & {
-            student?: Student,
-            group?: Group,
-        })[],
-        questions: (QuizQuestion | null)[]
-    })[];
-
     const _class = data.class as PrismaClass & {
         students: Student[],
         groups: (Group & {
@@ -121,6 +110,18 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
         })[],
         users: User[],
     } | null;
+
+    const { data: assignmentData, loading: assignmentDataLoading, refetch: quizRefetch } = useQuery(GetClassAssignmentsQuery, {
+        variables: {
+            classId: _class.id,
+        }
+    });
+
+    const assignments = (assignmentData?.classAssignments ?? []) as (QuizAssignment & {
+        student?: Student,
+        group?: Group,
+        quiz: Quiz,
+    })[];
 
     const doRefetch = () => {
         refetch();
@@ -132,14 +133,14 @@ const Class: NextPage<{ textid: string }> = ({ textid }) => {
             <ClassCardContainer cols="md:grid-cols-2">
 
                 <MainClassCard _class={_class} doRefetch={doRefetch} />
-                <StatsCard />
+                <StatsCard classId={_class.id} />
 
             </ClassCardContainer>
             <ClassCardContainer cols="md:grid-cols-2 lg:grid-cols-3">
 
                 <StudentsCard students={_class.students} id={_class.id} doRefetch={doRefetch} />
                 <GroupsCard _class={_class} doRefetch={doRefetch} />
-                <AssignmentsCard quizzes={quizzes} loading={quizDataLoading} doRefetch={doRefetch} />
+                <AssignmentsCard assignments={assignments} loading={assignmentDataLoading} doRefetch={doRefetch} />
 
             </ClassCardContainer>
         </div>

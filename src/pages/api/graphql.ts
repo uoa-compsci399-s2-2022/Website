@@ -16,6 +16,7 @@ import { Question } from '@/graphql/resolvers/question';
 import { Quiz } from '@/graphql/resolvers/quiz';
 import { Session } from '@/graphql/resolvers/session';
 import { Student } from '@/graphql/resolvers/student';
+import { Statistics } from '@/graphql/resolvers/statistics';
 
 export type Context = {
     prisma: PrismaClient,
@@ -31,6 +32,7 @@ const apolloServer = new ApolloServer({
         Question.typeDefs,
         Quiz.typeDefs,
         Session.typeDefs,
+        Statistics.typeDefs,
         Student.typeDefs,
     ],
     resolvers,

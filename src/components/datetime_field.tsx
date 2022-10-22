@@ -11,7 +11,7 @@ export const DatetimeField: React.FC<DatetimeFieldProps> = ({ name }) => {
 
     const toDateString = (date?: Date): string => {
         if (!date) return '';
-        return `${date.getFullYear()}-${zeroPad(date.getMonth(), 2)}-${zeroPad(date.getDate(), 2)}`;
+        return `${date.getFullYear()}-${zeroPad(date.getMonth() + 1, 2)}-${zeroPad(date.getDate(), 2)}`;
     };
 
     const toTimeString = (date?: Date): string => {

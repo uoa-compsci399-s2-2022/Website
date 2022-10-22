@@ -299,7 +299,7 @@ const QuizList: NextPage = ({ }) => {
                     <div className="rounded-lg bg-slate-600 m-4">
                         <div className="flex gap-2 p-6">
                             <h1 className="text-white text-3xl flex-grow">
-                                your quizzes
+                                Your Quizzes
                             </h1>
                             {
                                 quizUploading && <p className="text-white pb-4 flex gap-2 items-center">
@@ -320,7 +320,8 @@ const QuizList: NextPage = ({ }) => {
                                 })
                             }
                             <Card onClick={() => setQuizCreatorOpen(true)}>
-                                <h1 className="mt-4 text-xl font-bold text-text-colour w-full text-center">create new quiz</h1>
+                                <h1 className="mt-4 text-xl font-bold text-text-colour w-full">New Quiz</h1>
+                                <p>Create a new quiz</p>
                             </Card>
                         </CardContainer>
                     </div>
@@ -329,7 +330,7 @@ const QuizList: NextPage = ({ }) => {
                     <div className="rounded-lg bg-slate-600 m-4 p-4">
                         <div className="flex flex-row p-2 gap-2">
                             <h1 className="text-white text-3xl flex-grow">
-                                your questions
+                                Your Questions
                             </h1>
                             <input
                                 type="text"

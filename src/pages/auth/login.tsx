@@ -27,16 +27,13 @@ interface LoginProps {
 }
 
 const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
-    // TODO: render any errors we get from failed login attempts
-    // https://next-auth.js.org/configuration/pages#error-codes
-
     const defaultGroupString = localStorage.getItem('login-last-state');
     let defaultGroup = parseInt(defaultGroupString ?? "") || 1;
-    
-    const router = useRouter()
-    var {error} = router.query
 
-    if (!Array.isArray(error)) {
+    const router = useRouter()
+    var { error } = router.query
+
+    if (error && !Array.isArray(error)) {
         error = error.toString()
     }
 
@@ -54,7 +51,7 @@ const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
     }
 
 
-    return <div className="sm:px-8 max-w-md mx-auto py-8">
+    return <div className="px-2 sm:px-8 max-w-md mx-auto py-8">
         <Tabs
             pages={[
                 {
@@ -71,12 +68,12 @@ const Login: NextPage<LoginProps> = ({ providers, csrfToken }) => {
                 localStorage.setItem('login-last-state', index.toString());
             }}
         />
-        {error != undefined && typeof error === "string" && 
-        <div className='bg-red-500 rounded w-1/2 h-full text-center text-white m-auto p-2'>
-            <p>Error: {codes[error]}</p>
-        </div>
+        {error !== undefined && typeof error === "string" &&
+            <div className='bg-red-500 rounded w-1/2 h-full text-center text-white m-auto p-2'>
+                <p>Error: {codes[error]}</p>
+            </div>
         }
-        
+
     </div>
 }
 

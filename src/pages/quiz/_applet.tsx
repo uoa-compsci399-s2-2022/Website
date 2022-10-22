@@ -640,8 +640,6 @@ const QuizApplet: React.FC<QuizAppletProps> = ({ id, assignmentId }) => {
                 setAppletState('in-quiz');
             }
         } else if (new Date(assignment.end).getTime() - new Date().getTime() < 0) {
-            console.log(assignment.end);
-            console.log({ 'a': new Date(assignment.end).getTime(), 'b': new Date().getTime() })
             setAppletState('info');
             setInfo({
                 title: 'Too late!',

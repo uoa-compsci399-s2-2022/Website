@@ -117,8 +117,6 @@ export const GroupCreator: React.FC<GroupCreatorProps> = ({ isOpen, setIsOpen, d
         students: []
     }
 
-    console.log(initialValues);
-
     return (
         <Modal
             isOpen={isOpen}
