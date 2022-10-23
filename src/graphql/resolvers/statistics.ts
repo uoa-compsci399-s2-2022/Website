@@ -10,7 +10,7 @@ interface Stat {
     average: number,
 }
 
-type StatsData = {
+export type StatsData = {
     type: 'class'
     quizzes: Record<string, Stat>,
 } | {
@@ -227,7 +227,7 @@ export const Statistics = {
                                 if (questionGradeResult !== undefined) {
                                     grade += questionGradeResult / 100;
                                     graded += 1;
-                                    results[resultId][question.id] = grade;
+                                    results[resultId][question.id] = questionGradeResult / 100;
 
                                     const questionId = question.id;
                                     if (questionId in questionData) {

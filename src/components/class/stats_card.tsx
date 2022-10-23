@@ -139,10 +139,6 @@ const StatsCard: React.FC<StatsCard> = ({ classId }) => {
   });
   const [quizStatisticsQuery] = useLazyQuery(QuizStatisticsQuery);
 
-  if (!loading) {
-    console.log(data);
-  }
-
   useEffect(() => {
     if (!loading && data.classStatistics) {
       setQuizData((prev) => {
@@ -282,7 +278,8 @@ const StatsCard: React.FC<StatsCard> = ({ classId }) => {
 
   const isLoading = loading || quizData[selectedQuiz.id] === undefined;
   const isEmpty = !isLoading && quizData[selectedQuiz.id].completed === 0;
-  console.log(quizData[selectedQuiz.id]);
+  const selectedQuizData = quizData[selectedQuiz.id];
+  console.log(selectedQuizData);
   return (
     <Card width=''>
       <div className="flex flex-col h-52">
@@ -307,13 +304,14 @@ const StatsCard: React.FC<StatsCard> = ({ classId }) => {
               />
             </div>
           </div>
-          {selectedQuiz.id !== '' &&
+          {selectedQuizData && selectedQuizData.data.type === 'quiz' &&
             <>
               {
                 exporting && <LoadingSpinner />
               }
               <ExportStatistics
                 quizId={selectedQuiz.id}
+                data={selectedQuizData.data}
                 onStart={() => setExporting(true)}
                 onComplete={() => setExporting(false)}
               />

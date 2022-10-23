@@ -5,18 +5,20 @@ import React, { Fragment, useRef, useState } from 'react';
 import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Menu, Popover, Transition } from '@headlessui/react';
-import { exportQuestionsJSON } from '@/lib/util';
+import { exportQuestionsJSON, saveFileAsString } from '@/lib/util';
 import { useLazyQuery } from '@apollo/client';
 import { GetQuestionQuery } from '@/pages/quiz/preview/[questionid]';
 import { QuizQuestion } from '@prisma/client';
+import { StatsData } from '@/graphql/resolvers/statistics';
 
 interface ExportProps {
     quizId: string,
     onStart: () => void,
     onComplete: () => void,
+    data: StatsData & { type: 'quiz' }
 }
 
-const ExportStatistics: React.FC<ExportProps> = ({ quizId, onStart, onComplete }) => {
+const ExportStatistics: React.FC<ExportProps> = ({ quizId, data, onStart, onComplete }) => {
     const [getQuestion] = useLazyQuery(GetQuestionQuery);
 
     const buttonClassName = (active: boolean): string => {
@@ -24,28 +26,34 @@ const ExportStatistics: React.FC<ExportProps> = ({ quizId, onStart, onComplete }
             ' block px-4 py-2 text-sm';
     }
 
-    const fetchQuestionContent = async (): Promise<QuizQuestion[]> => {
+    const saveData = async (type: 'json' | 'csv'): Promise<void> => {
         onStart();
-        const data: QuizQuestion[] = [];
-        /*
-        for (const id of selected) {
-            try {
-                const questionData = await getQuestion({
-                    variables: {
-                        id,
-                    }
-                });
-                const question: QuizQuestion = questionData.data.question;
-                console.log(questionData);
-                data.push(question);
-            } catch (error) {
-                alert(error);
-                onComplete();
+        if (type === 'json') {
+            const text = JSON.stringify(data);
+            saveFileAsString(text, 'application/json', `statistics-quiz-${quizId}.json`);
+        } else if (type === 'csv') {
+            const rows: Record<string, string> = {};
+            for (const question in data.questions) {
+                const q = data.questions[question];
+                rows[q.name] = q.id;
             }
+
+            let text = `User,${Object.keys(rows).join(',')}\n`;
+            for (const user in data.results) {
+                const qs = data.results[user];
+                text += user;
+                for (const question in data.questions) {
+                    text += ',';
+                    if (question in qs) {
+                        text += qs[question];
+                    }
+                }
+                text += '\n';
+            }
+            saveFileAsString(text, 'text/csv', `statistics-quiz-${quizId}.csv`);
         }
-        */
+
         setTimeout(() => onComplete(), 2000);
-        return data;
     }
 
     return <div className="flex gap-2 items-center">
@@ -73,8 +81,7 @@ const ExportStatistics: React.FC<ExportProps> = ({ quizId, onStart, onComplete }
                             {({ active }) => (
                                 <a
                                     onClick={async () => {
-                                        await fetchQuestionContent();
-                                        alert('Not implemented');
+                                        await saveData('csv');
                                     }}
                                     className={buttonClassName(active)}
                                 >
@@ -86,8 +93,7 @@ const ExportStatistics: React.FC<ExportProps> = ({ quizId, onStart, onComplete }
                             {({ active }) => (
                                 <a
                                     onClick={async () => {
-                                        await fetchQuestionContent();
-                                        alert('Not implemented')
+                                        await saveData('json');
                                     }}
                                     className={buttonClassName(active)}
                                 >
