@@ -5,47 +5,78 @@
  * Sections -> upcoming, available
  *          -> upcoming, cannot take yet
  **/
-import { Session } from 'next-auth';
 import React from 'react';
+import { gql, useQuery } from '@apollo/client';
+import { Quiz, QuizAssignment, User } from '@prisma/client';
+import { CardContainer } from '@/components/card';
+import QuizCard from '@/components/quiz/quiz_card';
 
-export interface Quiz {
-    id: number,
-    name: string,
-    start_date: Date,
-    end_date: Date,
-}
-
-const SampleQuizzes: Quiz[] = [
-    {
-        id: 0,
-        name: 'Beginner spatial reasoning',
-        start_date: new Date(),
-        end_date: new Date()
+export const GetUpcomingQuizzesQuery = gql`
+    query {
+        upcomingQuizzes {
+            id
+            start
+            end
+            quiz {
+                id
+                created
+                name
+                description
+                timeLimit
+            }
+            assignedBy {
+                id
+                name
+                email
+            }
+        }
     }
-]
+`;
 
-interface StudentProps {
-    session: Session,
-}
+const Student: React.FC = () => {
+    const { loading, error, data } = useQuery(GetUpcomingQuizzesQuery);
 
-const Student: React.FC<StudentProps> = ({ session }) => {
+    if (loading) {
+        return <main>
+            <h1 className="text-white text-3xl p-6">
+                loading...
+            </h1>
+        </main>
+    }
+
+    if (error) {
+        return <main>
+            <h1 className="text-white text-3xl p-6">
+                error {JSON.stringify(error)}
+            </h1>
+        </main>
+    }
+
+    const quizAssignments = data.upcomingQuizzes as (QuizAssignment & {
+        quiz: Quiz,
+        assignedBy: User,
+    })[];
+
     return (
         <>
             <main className="">
-                <h1 className="">
+                <h1 className="text-white text-3xl p-6">
                     student home
                 </h1>
                 <div>
-                    {
-                        SampleQuizzes.map((quiz) => {
-                            return (
-                                <div key={`quiz-${quiz.id}`}>
-                                    <h1>{quiz.name}</h1>
-                                    <p>Due {quiz.end_date.toDateString()}</p>
-                                </div>
-                            )
-                        })
-                    }
+                    <CardContainer>
+                        {
+                            quizAssignments.map((assignment) => {
+                                return (
+                                    <QuizCard
+                                        key={`quiz-${assignment.id}`}
+                                        quiz={assignment.quiz}
+                                        assignment={assignment}
+                                    />
+                                )
+                            })
+                        }
+                    </CardContainer>
                 </div>
             </main>
         </>

@@ -2,6 +2,12 @@ import { Session } from "next-auth"
 import { parse } from 'csv-parse';
 import { XMLParser } from 'fast-xml-parser';
 import { stringify } from 'querystring';
+import { QuizQuestion } from '@prisma/client';
+import { gql } from '@apollo/client';
+
+// https://stackoverflow.com/questions/2998784/how-to-output-numbers-with-leading-zeros-in-javascript
+export const zeroPad = (num: number, places: number) => String(num).padStart(places, '0');
+
 
 export const isStudent = (session?: Session): boolean => {
     return (session && session.user && 'student' in session.user) ?? false;
@@ -102,7 +108,6 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
             case 'description': {
                 try {
                     const content = {
-                        name: question.name.text,
                         source: "moodle",
                         label: {
                             text: question.questiontext.text,
@@ -113,6 +118,7 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 
                     questions.push({
                         type: 'description',
+                        name: question.name.text,
                         category,
                         content,
                         attribution: '',
@@ -126,7 +132,6 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
             case 'multichoice': {
                 try {
                     const content = {
-                        name: question.name.text,
                         source: "moodle",
                         label: {
                             text: question.questiontext.text,
@@ -146,6 +151,7 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 
                     questions.push({
                         type: 'multichoice',
+                        name: question.name.text,
                         category,
                         content,
                         attribution: '',
@@ -158,7 +164,6 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
             case 'numerical': {
                 try {
                     const content = {
-                        name: question.name.text,
                         source: "moodle",
                         label: {
                             text: question.questiontext.text,
@@ -170,6 +175,7 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 
                     questions.push({
                         type: 'numerical',
+                        name: question.name.text,
                         category,
                         content,
                         attribution: '',
@@ -192,7 +198,10 @@ const importQuestionsXML = async (file: File, onImport: OnImportQuestionsFunc): 
 };
 
 const importQuestionsJSON = async (file: File, onImport: OnImportQuestionsFunc): Promise<void> => {
+    const text = await file.text();
+    const jsonObject = JSON.parse(text);
 
+    onImport(jsonObject);
 };
 
 export const importQuestions = async (files: FileList | null | undefined, onImport: OnImportQuestionsFunc): Promise<void> => {
@@ -202,8 +211,41 @@ export const importQuestions = async (files: FileList | null | undefined, onImpo
         await importQuestionsXML(file, onImport);
     } else if (file.type === 'application/json') {
         await importQuestionsJSON(file, onImport);
+    } else {
+        alert(`Invalid file type ${file.type}.`)
     }
 };
+
+type OnImportQuizFunc = (quiz: QuizProps) => void;
+
+export const importQuiz = async (files: FileList | null | undefined, onImport: OnImportQuizFunc) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+
+    if (file.type !== 'application/json') {
+        alert(`Invalid file type ${file.type}.`)
+        return;
+    }
+
+    const text = await file.text();
+    const jsonObject = JSON.parse(text);
+
+    onImport(jsonObject);
+}
+
+export const saveFileAsString = (text: string, type: string, name: string) => {
+    let fileElement = document.createElement('a');
+    fileElement.href = window.URL.createObjectURL(new Blob([text], {
+        type
+    }));
+    fileElement.download = name;
+    fileElement.click();
+    fileElement.remove();
+}
+
+export const exportQuestionsJSON = async (questions: QuizQuestion[]) => {
+    saveFileAsString(JSON.stringify(questions), 'application/json', `questions-export-${questions.length}-${new Date().toISOString()}.json`);
+}
 
 export const moodleFixHtml = (html: string, image: any): string => {
     let images = [];
@@ -230,8 +272,15 @@ export const moodleFixHtml = (html: string, image: any): string => {
                 const matchingImage = matchingImages[0];
                 image.src = 'data:image/jpeg;base64,' + matchingImage['#text'];
             }
+        } else if (path.indexOf('googleusercontent')) {
+            image.referrerPolicy = 'no-referrer'
         }
     }
 
     return htmlDoc.body.innerHTML;
 }
+
+export const questionRemoveAnswers = (question: QuizQuestion) => {
+    console.error('questionRemoveAnswers is unimplemented!');
+    return question;
+};

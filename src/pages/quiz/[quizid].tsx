@@ -2,26 +2,106 @@
  * The 'Quiz' route allows students to take a quiz with '_applet.tsx'.  If an instructor visits this page,
  * then they should be able to modify the contents of this quiz using '_editor.tsx'.
  **/
+import { addApolloState, initializeApollo } from '@/lib/apollo'
 import { isStudent } from '@/lib/util'
-import { NextPage } from 'next'
+import { GetServerSideProps, NextPage } from 'next'
+import { unstable_getServerSession } from 'next-auth'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import QuizApplet from './_applet'
-import QuizEditor from './_editor'
+import { authOptions } from '../api/auth/[...nextauth]'
+import QuizApplet, { AssignmentQuery, GetQuizNoAnswersQuery } from './_applet'
+import QuizEditor, { GetQuizQuery } from './_editor'
 
-const Quiz: NextPage = () => {
-    const router = useRouter()
-    const { quizid } = router.query
+export const getServerSideProps: GetServerSideProps = async (context) => {
+    const session = await unstable_getServerSession(context.req, context.res, authOptions);
+    const { quizid } = context.query;
+
+    let id = '';
+    if (typeof quizid === 'string') id = quizid;
+
+    if (session?.user) {
+        const apolloClient = initializeApollo(context.req.cookies);
+
+        if (!isStudent(session)) {
+            await apolloClient.query({
+                query: GetQuizQuery,
+                variables: {
+                    id,
+                }
+            });
+        } else {
+            const { data } = await apolloClient.query({
+                query: AssignmentQuery,
+                variables: {
+                    id,
+                }
+            });
+
+            if (!data) {
+                return {
+                    props: {},
+                    redirect: {
+                        permanent: false,
+                        destination: '/',
+                    }
+                }
+            }
+
+            await apolloClient.query({
+                query: GetQuizNoAnswersQuery,
+                variables: {
+                    id: data.assignment.quiz.id,
+                }
+            });
+
+
+            return addApolloState(apolloClient, {
+                props: {
+                    id: data.assignment.quiz.id,
+                    assignmentId: id,
+                },
+            });
+        }
+
+        return addApolloState(apolloClient, {
+            props: {
+                id
+            },
+        });
+    } else {
+        return {
+            props: {},
+            redirect: {
+                permanent: false,
+                destination: '/',
+            }
+        };
+    }
+};
+
+interface QuizProps {
+    id: string,
+    assignmentId?: string,
+}
+
+const Quiz: NextPage<QuizProps> = ({ id, assignmentId }) => {
     const { data: session, status } = useSession()
     const loading = status === "loading";
 
     // Pull data about our quiz in from the server here, then provide it to the applet or
     // the editor.
 
+    if (!session || !session.user) return <p>aaa</p>
+
     return <>
-        <p>Quiz: {quizid}</p>
         {
-            session && isStudent(session) ? <QuizApplet /> : <QuizEditor />
+            session && session.user && isStudent(session) ?
+                <QuizApplet
+                    id={id}
+                    assignmentId={assignmentId}
+                /> :
+                <QuizEditor
+                    id={id}
+                />
         }
     </>
 }

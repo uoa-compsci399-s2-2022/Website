@@ -3,33 +3,46 @@
  **/
 import React, { Component } from 'react'
 
+type Theme = 'solid' | 'grey' | 'danger' | 'passive';
+
+export type ButtonTheme = Theme;
+
 interface ButtonProps {
-    solid?: boolean,
+    theme?: Theme,
     disabled?: boolean,
     action: () => void,
     preventDefault?: boolean,
     children?: React.ReactNode;
+    type?: "button" | "submit" | "reset",
 }
 
-interface Colours {
-    [key: string]: {
-        enabled: string,
-        disabled: string,
-    }
-}
+type Colours = {
+    [key in Theme]: {
+        enabled: string;
+        disabled: string;
+    };
+};
 
 const colours: Colours = {
     solid: {
-        enabled: 'border-gray-300 bg-orange-500 text-gray-100 hover:bg-orange-600',
-        disabled: 'border-gray-300 bg-orange-300 text-gray-100',
+        enabled: 'bg-accent text-text-colour hover:bg-accent/[0.85]',
+        disabled: 'bg-background text-text-colour',
     },
-    not_solid: {
-        enabled: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-        disabled: 'border-gray-300 bg-grey-300 text-gray-400',
+    grey: {
+        enabled: 'border-gray-300 bg-background text-text-colour-700 hover:bg-gray-500',
+        disabled: 'border-gray-300 bg-background text-text-colour',
+    },
+    danger: {
+        enabled: 'border-red-400 bg-red-500 text-white hover:bg-red-600',
+        disabled: 'border-gray-300 bg-background text-text-colour',
+    },
+    passive: {
+        enabled: 'bg-gray-800 text-white border-gray-600 hover:bg-gray-900',
+        disabled: 'border-gray-300 bg-background text-text-colour',
     }
 }
 
-const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, preventDefault }) => {
+const Button: React.FC<ButtonProps> = ({ theme, disabled, children, action, preventDefault, type }) => {
 
     const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         action();
@@ -38,11 +51,12 @@ const Button: React.FC<ButtonProps> = ({ solid, disabled, children, action, prev
         }
     }
 
-    let colour = colours[solid ? 'solid' : 'not_solid'][disabled ? 'disabled' : 'enabled'];
+    let colour = colours[theme ?? 'grey'][disabled ? 'disabled' : 'enabled'];
 
     return <button
+        type={type}
         onClick={onClick}
-        className={`inline-flex gap-2 items-center justify-center rounded-md border shadow-sm px-4 py-2 text-sm font-medium focus:outline-none ${colour}`}
+        className={`inline-flex gap-2 items-center justify-center rounded-md shadow-sm px-4 py-2 text-sm font-medium focus:outline-none ${colour}`}
         disabled={disabled}
     >
         {children}

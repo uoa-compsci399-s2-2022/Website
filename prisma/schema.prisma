@@ -63,12 +63,13 @@ model User {
 }
 
 model Class {
-  id       String    @id @default(cuid())
-  textid   String
-  name     String
-  users    User[]
-  students Student[]
-  groups   Group[]
+  id          String           @id @default(cuid())
+  textid      String           @unique
+  name        String
+  users       User[]
+  students    Student[]
+  groups      Group[]
+  assignments QuizAssignment[]
 }
 
 model Student {
@@ -86,12 +87,13 @@ model Student {
 model Group {
   id        String           @id @default(cuid())
   name      String
-  passcode  String           @unique
+  passcode  String?          @unique
   anonymous Boolean
   students  Student[]
   class     Class            @relation(fields: [classId], references: [id])
   classId   String
   quizzes   QuizAssignment[]
+  sessions  QuizSession[]
 }
 
 model Quiz {
@@ -107,21 +109,23 @@ model Quiz {
 }
 
 model QuizQuestionLink {
-  timeLimit      Int
-  quiz           Quiz         @relation(fields: [quizId], references: [id])
-  quizId         String
-  quizQuestion   QuizQuestion @relation(fields: [quizQuestionId], references: [id])
-  quizQuestionId String
+  id String @id @default(cuid())
 
-  @@id([quizId, quizQuestionId])
+  index          Int
+  timeLimit      Int?
+  quiz           Quiz          @relation(fields: [quizId], references: [id])
+  quizId         String
+  quizQuestion   QuizQuestion? @relation(fields: [quizQuestionId], references: [id])
+  quizQuestionId String?
 }
 
 model QuizQuestion {
   id          String             @id @default(cuid())
   type        String
   category    String
+  name        String
   content     Json
-  attribution String
+  attribution String?
   quizLinks   QuizQuestionLink[]
   user        User               @relation(fields: [userId], references: [id])
   userId      String
@@ -129,24 +133,30 @@ model QuizQuestion {
 
 model QuizAssignment {
   id         String        @id @default(cuid())
-  quiz       Quiz          @relation(fields: [quizId], references: [id])
-  assignedBy User          @relation(fields: [userId], references: [id])
-  students   Student[]
-  groups     Group[]
-  quizId     String
-  userId     String
   start      DateTime
   end        DateTime
+  quiz       Quiz          @relation(fields: [quizId], references: [id])
+  quizId     String
+  assignedBy User          @relation(fields: [userId], references: [id])
+  userId     String
+  student    Student?      @relation(fields: [studentId], references: [id])
+  studentId  String?
+  group      Group?        @relation(fields: [groupId], references: [id])
+  groupId    String?
   sessions   QuizSession[]
+  class      Class?        @relation(fields: [classId], references: [id])
+  classId    String?
 }
 
 model QuizSession {
   id               String         @id @default(cuid())
   start            DateTime       @default(now())
-  finish           DateTime
+  finish           DateTime?
   data             Json
-  student          Student        @relation(fields: [studentId], references: [id])
-  studentId        String
+  student          Student?       @relation(fields: [studentId], references: [id])
+  studentId        String?
   quizAssignment   QuizAssignment @relation(fields: [quizAssignmentId], references: [id])
   quizAssignmentId String
+  group            Group?         @relation(fields: [groupId], references: [id])
+  groupId          String?
 }

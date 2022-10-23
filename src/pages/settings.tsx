@@ -15,7 +15,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await unstable_getServerSession(context.req, context.res, authOptions);
 
     if (session?.user && !isStudent(session)) {
-        // TODO: load something here
         return { props: {} };
     } else {
         return { props: {} };
@@ -46,7 +45,7 @@ const Index: NextPage<IndexProps> = ({ }) => {
                 loading ? (
                     <p>loading... {/* TODO: draw some spinner element or something */}</p>
                 ) : (
-                    <p>hello</p>
+                    <p className="text-white text-3xl p-4">Instructor settings page</p>
                 )
             }
         </>

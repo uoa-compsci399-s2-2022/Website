@@ -6,12 +6,30 @@
 import { isStudent } from '@/lib/util';
 import type { GetServerSideProps, NextPage } from 'next';
 import { unstable_getServerSession } from 'next-auth';
-import { QuizQuestion } from '@prisma/client';
-import { authOptions } from '@/pages/api/auth/[...nextauth]';
-import prisma from '@/lib/prisma';
-import DescriptionQuestion from '@/components/question/description';
+import { gql, useQuery } from '@apollo/client';
 import dynamic from 'next/dynamic';
-import MultiChoiceQuestion from '@/components/question/multichoice';
+import { QuizQuestion, User } from '@prisma/client';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { addApolloState, initializeApollo } from '@/lib/apollo';
+import { QuestionView } from '@/components/question/question_type';
+
+export const GetQuestionQuery = gql`
+    query($id: String!) {
+        question(id: $id) {
+            id
+            type
+            name
+            category
+            content
+            attribution
+            user {
+                id
+                name
+                email
+            }
+        }
+    }
+`;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await unstable_getServerSession(context.req, context.res, authOptions);
@@ -21,60 +39,51 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (typeof questionid === 'string') id = questionid;
 
     if (session?.user && !isStudent(session)) {
-        const question = await prisma.quizQuestion.findFirst({
-            where: {
-                user: {
-                    id: session.user.uid,
-                },
-                id,
-            },
+        const apolloClient = initializeApollo(context.req.cookies);
+
+        await apolloClient.query({
+            query: GetQuestionQuery,
+            variables: {
+                id
+            }
         });
 
-        return {
-            props: { question },
-        }
+        return addApolloState(apolloClient, {
+            props: {
+                id
+            },
+        });
     } else {
-        console.log('no session');
-        return { props: {} }
+        return {
+            props: {},
+            redirect: {
+                permanent: false,
+                destination: '/',
+            }
+        };
     }
 };
 
-interface IndexProps {
-    question: QuizQuestion,
+interface QuestionPreviewProps {
+    id: string,
 }
 
-const QuestionPreview: NextPage<IndexProps> = ({ question }) => {
-    let content = (<></>);
+const QuestionPreview: NextPage<QuestionPreviewProps> = ({ id }) => {
+    const { loading, error, data, refetch } = useQuery(GetQuestionQuery, {
+        variables: { id }
+    })
 
-    switch (question.type) {
-        case 'description': {
-            content = <DescriptionQuestion content={question.content} />;
-            break;
-        };
-        case 'multichoice': {
-            content = <MultiChoiceQuestion content={question.content} />;
-            break;
-        };
-        case 'numerical': {
+    console.log(data, loading, error);
 
-        };
-    }
+    const question = data.question as QuizQuestion & {
+        user: User,
+    };
 
-    console.log(question.content);
     return (
-        <div className="p-4 max-w-3xl mx-auto">
-            {question && <>
-                <div className="rounded-lg bg-slate-600 m-4">
-                    <h1 className="text-white text-3xl p-6 text-center">
-                        {
-                            // @ts-ignore
-                            question.content.name
-                        } (preview)
-                    </h1>
-                    {content}
-                </div>
-            </>}
-        </div>
+        <QuestionView
+            question={question}
+            editor={(question.content as any).source !== 'moodle'}
+        />
     );
 }
 
