@@ -8,6 +8,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 Our website is hosted at [spatialskills.team34.software](https://spatialskills.team34.software/), and we used the [Jira](https://399-34-14.atlassian.net/jira/software/projects/P14/boards/2/roadmap) project management system.  
 
+Some sample quiz and questions can be found in `/samples`.  These can be imported into the website for testing.  
 
 ## Screenshots
 ![Class management dashboard](screenshots/class_dashboard.png)  
@@ -89,6 +90,7 @@ NEXTAUTH_SECRET=mydevelopmentkey
 This website is almost complete, but run out of time for:
 
 - MOODLE question export
+- Question editing
 - Better statistic exporting
 - Comprehensive user testing
 
