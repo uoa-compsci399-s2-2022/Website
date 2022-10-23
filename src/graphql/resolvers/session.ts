@@ -149,7 +149,7 @@ export const Session = {
                 throw new Error(`No such session with id ${args.id}`);
             }
 
-            return context.prisma.quizSession.update({
+            return await context.prisma.quizSession.update({
                 where: {
                     id: args.id,
                 },
@@ -184,7 +184,7 @@ export const Session = {
             };
             newData.events[new Date().toISOString()] = args.event;
 
-            return context.prisma.quizSession.update({
+            return await context.prisma.quizSession.update({
                 where: {
                     id: args.id,
                 },
@@ -219,7 +219,10 @@ export const Session = {
             };
             newData.answers[args.key] = args.answer;
 
-            return context.prisma.quizSession.update({
+            console.log('saved data');
+            console.log(existingData.answers, newData.answers);
+
+            return await context.prisma.quizSession.update({
                 where: {
                     id: args.id,
                 },
@@ -235,7 +238,7 @@ export const Session = {
         finishSession: async (_parent: any, args: { id: string }, context: Context) => {
             ProtectQuery(context, true);
 
-            return context.prisma.quizSession.update({
+            return await context.prisma.quizSession.update({
                 where: {
                     id: args.id,
                 },

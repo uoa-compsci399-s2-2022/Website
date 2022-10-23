@@ -73,6 +73,61 @@ const QuizSelector: React.FC<QuizSelectorProps> = ({ value, setValue }) => {
 interface StatsCard {
   classId: string,
 }
+
+const generateDonutData = (data: Record<string, number>, title: string) => {
+  const labels = Object.keys(data);
+  const values = Object.values(data);
+
+  return {
+    labels,
+    datasets: [{
+      label: title,
+      data: values,
+      backgroundColor: [
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(255, 99, 132, 0.2)',
+      ],
+      borderColor: [
+        'rgba(75, 192, 192, 1)',
+        'rgba(255, 99, 132, 1)',
+      ],
+      borderWidth: 1,
+    }]
+  };
+};
+
+const generateBarData = (data: Record<string, number>, title: string) => {
+  const labels = Object.keys(data);
+  const values = Object.values(data);
+
+  return {
+    labels,
+    datasets: [{
+      label: title,
+      data: values,
+      backgroundColor: [
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(255, 159, 64, 0.2)',
+        'rgba(255, 205, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(201, 203, 207, 0.2)'
+      ],
+      borderColor: [
+        'rgb(255, 99, 132)',
+        'rgb(255, 159, 64)',
+        'rgb(255, 205, 86)',
+        'rgb(75, 192, 192)',
+        'rgb(54, 162, 235)',
+        'rgb(153, 102, 255)',
+        'rgb(201, 203, 207)'
+      ],
+      borderWidth: 1
+    }]
+  };
+}
+
 const StatsCard: React.FC<StatsCard> = ({ classId }) => {
   const [selectedQuiz, setSelectedQuiz] = useState<{ id: string, name: string }>({ id: '', name: '' });
   const [quizData, setQuizData] = useState<Record<string, StatsResult>>({});
@@ -128,70 +183,41 @@ const StatsCard: React.FC<StatsCard> = ({ classId }) => {
     })();
   }, [selectedQuiz]);
 
-  const data1 = {
-    labels: ['Complete', 'Incomplete'],
-    datasets: [
-      {
-        label: 'Completion',
-        data: [17, 4],
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(255, 99, 132, 0.2)',
-        ],
-        borderColor: [
-          'rgba(75, 192, 192, 1)',
-          'rgba(255, 99, 132, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
+  let donut1Data = null;
+  let donut2Data = null;
+  let bargraphData = null;
+  if (quizData[selectedQuiz.id] !== undefined) {
+    const qd = quizData[selectedQuiz.id];
+    if (qd.data.type === 'class') {
+      const data: Record<string, number> = {};
+      for (const quiz in qd.data.quizzes) {
+        data[qd.data.quizzes[quiz].name] = qd.data.quizzes[quiz].average;
+      }
+      bargraphData = generateBarData(
+        data,
+        'Quizzes'
+      );
+    } else {
+      const data: Record<string, number> = {};
+      for (const q in qd.data.questions) {
+        data[qd.data.questions[q].name] = qd.data.questions[q].average;
+      }
+      bargraphData = generateBarData(
+        data,
+        'Average'
+      );
+    }
 
-  const data2 = {
-    labels: ['Correct', 'Incorrect'],
-    datasets: [
-      {
-        label: 'Average Mark',
-        data: [65, 35],
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(255, 99, 132, 0.2)',
-        ],
-        borderColor: [
-          'rgba(75, 192, 192, 1)',
-          'rgba(255, 99, 132, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const data3 = {
-    labels: ['My Quiz', 'Quiz 2', 'Quiz 3', 'Quiz 4', 'Quiz 5'],
-    datasets: [{
-      label: 'Average Grade',
-      data: [65, 59, 80, 81, 56, 55, 40],
-      backgroundColor: [
-        'rgba(255, 99, 132, 0.2)',
-        'rgba(255, 159, 64, 0.2)',
-        'rgba(255, 205, 86, 0.2)',
-        'rgba(75, 192, 192, 0.2)',
-        'rgba(54, 162, 235, 0.2)',
-        'rgba(153, 102, 255, 0.2)',
-        'rgba(201, 203, 207, 0.2)'
-      ],
-      borderColor: [
-        'rgb(255, 99, 132)',
-        'rgb(255, 159, 64)',
-        'rgb(255, 205, 86)',
-        'rgb(75, 192, 192)',
-        'rgb(54, 162, 235)',
-        'rgb(153, 102, 255)',
-        'rgb(201, 203, 207)'
-      ],
-      borderWidth: 1
-    }]
-  };
+    donut1Data = generateDonutData({
+      'Completed': qd.completed,
+      'Incomplete': qd.assigned - qd.completed,
+    }, 'Completion');
+    const average100 = Math.floor(qd.averageGrade * 100);
+    donut2Data = generateDonutData({
+      'Correct': average100,
+      'Incorrect': 100 - average100,
+    }, 'Average Grade');
+  }
 
   const optionsDoughnut1 = {
     maintainAspectRatio: false,
@@ -244,7 +270,7 @@ const StatsCard: React.FC<StatsCard> = ({ classId }) => {
       },
       title: {
         display: true,
-        text: 'Quiz Breakdown',
+        text: selectedQuiz.id === '' ? 'Average by Quiz' : 'Average by Question',
         position: 'bottom' as const,
         padding: {
           top: 10,
@@ -263,9 +289,9 @@ const StatsCard: React.FC<StatsCard> = ({ classId }) => {
         <div className='grid grid-cols-3 gap-0 p-4 flex-grow'>
           {
             isLoading ? <LoadingSpinner /> : isEmpty ? <p>No quiz attempts</p> : <>
-              <p><Bar data={data3} width={'100px'} height={'100px'} options={optionsBar} /></p>
-              <p><Doughnut data={data1} width={'100px'} height={'100px'} options={optionsDoughnut1} /></p>
-              <p><Doughnut data={data2} width={'100px'} height={'100px'} options={optionsDoughnut2} /></p>
+              <p><Bar data={bargraphData} width={'100px'} height={'100px'} options={optionsBar} /></p>
+              <p><Doughnut data={donut1Data} width={'100px'} height={'100px'} options={optionsDoughnut1} /></p>
+              <p><Doughnut data={donut2Data} width={'100px'} height={'100px'} options={optionsDoughnut2} /></p>
             </>
           }
         </div>

@@ -333,11 +333,11 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
     const changeAnswer = async (to: SessionAnswer) => {
         let from = undefined;
         if (`${state.question}` in answers) {
-            from = answers[`${questions[state.question].id}`];
+            from = answers[`${questions[state.question].quizQuestion.id}`];
         }
         setAnswers((answers) => {
             const newAnswer: any = {};
-            newAnswer[`${questions[state.question].id}`] = to;
+            newAnswer[`${questions[state.question].quizQuestion.id}`] = to;
             return {
                 ...answers,
                 ...newAnswer,
@@ -345,34 +345,30 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
         });
 
         setSaving(true);
-        await Promise.all([pushEventMutation({
+        await pushEventMutation({
             variables: {
                 id: session.id,
                 event: {
                     event: 'changeAnswer',
-                    question: state.question,
+                    question: questions[state.question].quizQuestion.id,
                     from,
                     to,
                 } as SessionEvent,
             }
-        }), changeAnswerMutation({
+        });
+        await changeAnswerMutation({
             variables: {
                 id: session.id,
-                key: `${state.question}`,
+                key: `${questions[state.question].quizQuestion.id}`,
                 answer: to,
             }
-        })]);
+        });
         setSaving(false);
     }
 
-    const startQuestionTimer = () => {
-        updateState((prev: SessionState) => {
-            const next = { ...prev, timeLimitStarted: { ...prev.timeLimitStarted } };
-            next.timeLimitStarted[prev.question] = new Date();
-            console.log({ prev, next });
-            return next;
-        });
-        pushEventMutation({
+    const startQuestionTimer = async () => {
+        setDisableControls(true);
+        await pushEventMutation({
             variables: {
                 id: session.id,
                 event: {
@@ -381,10 +377,24 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                 } as SessionEvent
             }
         });
-        setDisableControls(true);
+        updateState((prev: SessionState) => {
+            const next = { ...prev, timeLimitStarted: { ...prev.timeLimitStarted } };
+            next.timeLimitStarted[prev.question] = new Date();
+            console.log({ prev, next });
+            return next;
+        });
     }
 
-    const questionTimeUp = () => {
+    const questionTimeUp = async () => {
+        await pushEventMutation({
+            variables: {
+                id: session.id,
+                event: {
+                    event: 'finishQuestion',
+                    question: state.question,
+                } as SessionEvent
+            }
+        });
         updateState((prev: SessionState) => {
             const next = {
                 ...prev,
@@ -394,15 +404,6 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
             };
             next.timeLimitEnded[prev.question] = true;
             return next;
-        });
-        pushEventMutation({
-            variables: {
-                id: session.id,
-                event: {
-                    event: 'finishQuestion',
-                    question: state.question,
-                } as SessionEvent
-            }
         });
         setDisableControls(false);
     }
@@ -439,7 +440,7 @@ const InQuizState: React.FC<InQuizStateProps> = ({ quiz, session, finishQuiz }) 
                         <QuestionView
                             question={questions[state.question].quizQuestion}
                             state={state}
-                            answer={answers[`${questions[state.question].id}`] ?? undefined}
+                            answer={answers[`${questions[state.question].quizQuestion.id}`] ?? undefined}
                             canChangeAnswer={!(questions[state.question].timeLimit > 0 && state.timeLimitEnded[state.question])}
                             quizId={quiz.id}
                             setDisableControls={setDisableControls}

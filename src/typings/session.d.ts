@@ -25,7 +25,7 @@ type SessionEvent = {
     question: number,
 } | {
     event: 'changeAnswer',
-    question: number,
+    question: string,
     from?: SessionAnswer,
     to: SessionAnswer,
 };

@@ -65,6 +65,7 @@ export const QuestionView: React.FC<QuestionViewProps> = ({ question, state, ans
         case 'memory_game': {
             content = <MemoryGameQuestion
                 content={question.content}
+                questionId={question.id}
                 state={state}
                 answer={answer}
                 quizId={quizId}

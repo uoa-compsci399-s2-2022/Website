@@ -73,13 +73,17 @@ const CategoryComponent: React.FC<CategoryComponentProps> = ({ name, category, c
     } else {
         colour = "border-accent"
     }
+    let rounded = '';
+    if (count === 0) {
+        rounded = 'rounded';
+    }
 
     return (
         <Disclosure>
             {({ open }) => (
                 <div className="pb-4">
-                    <div className={`border-l-4 ${colour}`}>
-                        <Disclosure.Button className="p-2 bg-slate-400 w-full inline-flex justify-left items-center text-black m-100 gap-2">
+                    <div className={`border-l-4 ${colour} ${rounded}`}>
+                        <Disclosure.Button className={`p-2 bg-slate-400 w-full inline-flex justify-left items-center text-black m-100 gap-2 ${count === 0 && open ? 'rounded-t' : 'rounded' ?? ''}`}>
                             {
                                 selectMultiple && <input
                                     type="checkbox"

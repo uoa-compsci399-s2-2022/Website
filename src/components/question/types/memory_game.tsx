@@ -465,6 +465,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ content, quizId, finishGame }) 
 
 interface MemoryGameQuestionProps {
     content: any,
+    questionId?: string,
     attribution?: string,
     state?: SessionState,
     answer?: SessionAnswer,
@@ -477,7 +478,7 @@ interface MemoryGameQuestionProps {
 
 type GameState = 'start' | 'in-game' | 'finish';
 
-export const MemoryGameQuestion: React.FC<MemoryGameQuestionProps> = ({ content, state, answer, quizId, setDisableControls, updateState, changeAnswer, pushEvent }) => {
+export const MemoryGameQuestion: React.FC<MemoryGameQuestionProps> = ({ content, questionId, state, answer, quizId, setDisableControls, updateState, changeAnswer, pushEvent }) => {
     const [tempScore, setTempScore] = useState(0);
     const [gameState, setGameState] = useState<GameState>('start')
 
@@ -560,7 +561,7 @@ export const MemoryGameQuestion: React.FC<MemoryGameQuestionProps> = ({ content,
 
             pushEvent({
                 event: 'changeAnswer',
-                question: state.question,
+                question: questionId,
                 to: {
                     type: 'memory_game',
                     score,

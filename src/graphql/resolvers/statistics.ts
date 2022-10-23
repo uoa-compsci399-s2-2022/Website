@@ -2,6 +2,7 @@ import { gql } from 'apollo-server-micro';
 import { Context } from '@/pages/api/graphql';
 import { ProtectQuery } from '../resolvers';
 import { questionGrade } from '@/components/question/question_type';
+import { QuizSession } from '@prisma/client';
 
 interface Stat {
     id: string,
@@ -16,6 +17,7 @@ type StatsData = {
     type: 'quiz'
     questions: Record<string, Stat>,
     results: Record<string, Record<string, number>>,
+    export: Record<string, QuizSession>,
 };
 
 const safeDiv = (a: number, b: number): number => {
@@ -98,6 +100,7 @@ export const Statistics = {
                         for (let i = 0; i < assignment.quiz.questions.length; i++) {
                             const question = assignment.quiz.questions[i].quizQuestion;
                             if (question) {
+                                console.log(question.id, (question.content as any).answers, answers[`${question.id}`]);
                                 const questionGradeResult = questionGrade(question, answers[`${question.id}`]);
                                 if (questionGradeResult !== undefined) {
                                     grade += questionGradeResult / 100;
@@ -192,6 +195,7 @@ export const Statistics = {
             }> = {};
 
             const results: Record<string, Record<string, number>> = {};
+            const exportSessions: Record<string, QuizSession> = {};
 
             for (const assignment of assignments) {
                 assigned += 1;
@@ -201,6 +205,7 @@ export const Statistics = {
 
                 for (const session of assignment.sessions) {
                     if (session.finish) {
+                        exportSessions[session.id] = session;
                         let resultId = '';
                         if (session.student) {
                             resultId = `Student ${session.student.name}`;
@@ -251,6 +256,7 @@ export const Statistics = {
                 type: 'quiz',
                 questions: {},
                 results,
+                export: exportSessions,
             };
 
             for (const questionId in questionData) {
